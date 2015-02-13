@@ -1,9 +1,12 @@
-package com.uta.shoeperstar.vibe;
+package com.uta.shoeperstar.vibe.Activity;
 
+import android.content.Intent;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+
+import com.uta.shoeperstar.vibe.R;
 
 
 public class SplashActivity extends ActionBarActivity {
@@ -12,6 +15,11 @@ public class SplashActivity extends ActionBarActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
+
+        Intent i = new Intent(SplashActivity.this, MainActivity.class);
+        startActivity(i);
+        finish();
+
     }
 
 
