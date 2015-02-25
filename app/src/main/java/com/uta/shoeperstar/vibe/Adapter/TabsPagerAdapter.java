@@ -4,7 +4,7 @@ import android.app.FragmentManager;
 import android.support.v13.app.FragmentStatePagerAdapter;
 
 import com.uta.shoeperstar.vibe.Fragment.DashboardFragment;
-import com.uta.shoeperstar.vibe.Fragment.MapFragment;
+import com.uta.shoeperstar.vibe.Fragment.MapViewFragment;
 import com.uta.shoeperstar.vibe.Fragment.SettingsFragment;
 
 /**
@@ -31,7 +31,7 @@ public class TabsPagerAdapter extends FragmentStatePagerAdapter {
             case 0:
                 return new DashboardFragment();
             case 1:
-                return new MapFragment();
+                return new MapViewFragment();
             case 2:
                 return new SettingsFragment();
         }
