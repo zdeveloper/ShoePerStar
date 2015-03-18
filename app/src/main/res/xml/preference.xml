@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <intent android:action="com.uta.shoeperstar.vibe.Activity.SettingsActivity">
+    </intent>
+    <PreferenceCategory
+        android:title="Vibration Settings">
+
+        <CheckBoxPreference
+            android:title="Enable Vibration"
+            android:defaultValue="true"
+            android:key="vibeOnOffPref"
+            android:summaryOn="Disable Vibration"
+            android:summaryOff="Enable Vibration"/>
+
+        <ListPreference
+            android:title="Vibration Frequency"
+            android:key="freqPref"
+            android:defaultValue="digiGreen"
+            android:entries="@array/listArray"
+            android:entryValues="@array/listValues" />
+        <ListPreference
+            android:title="Vibration Strength"
+            android:key="vibePref"
+            android:defaultValue="digiGreen"
+            android:entries="@array/listArray"
+            android:entryValues="@array/listValues" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:title="Bluetooth Settings">
+
+        <CheckBoxPreference
+            android:title="Enable Bluetooth"
+            android:defaultValue="true"
+            android:key="bluetoothPref"
+            android:summaryOn="Disable Bluetooth"
+            android:summaryOff="Enable Bluetooth"/>
+
+        <ListPreference
+            android:title="Paired Devices"
+            android:key="pairedDevPref"
+            android:entries="@array/deviceListArray"
+            android:entryValues="@array/listValues" />
+
+
+
+
+    </PreferenceCategory>
+
+
+    <PreferenceCategory
+        android:title="System Information">
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:title="About">
+    </PreferenceCategory>
+
+</PreferenceScreen>
