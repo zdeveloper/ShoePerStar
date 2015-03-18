@@ -1,7 +1,14 @@
 package com.uta.shoeperstar.vibe.Fragment;
 
-import android.os.Bundle;
 import android.app.Fragment;
+import android.content.Context;
+import android.content.Intent;
+import android.location.Criteria;
+import android.location.Location;
+import android.location.LocationManager;
+import android.net.Uri;
+import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,6 +23,9 @@ import com.uta.shoeperstar.vibe.R;
 
 public class MapViewFragment extends Fragment  implements OnMapReadyCallback {
 
+    LocationManager locationManager;
+    Location lastKnownLocation;
+
     private final static LatLng HOME_LOCATION = new LatLng(32.731, -97.1145);		//HOME LOCATION
 
     public MapViewFragment() {
@@ -26,6 +36,13 @@ public class MapViewFragment extends Fragment  implements OnMapReadyCallback {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         //do stuff before the ui is loaded
+
+        locationManager = (LocationManager) this.getActivity().getSystemService(Context.LOCATION_SERVICE);
+        Criteria criteria = new Criteria();
+        criteria.setAccuracy(Criteria.ACCURACY_FINE);
+        criteria.setAltitudeRequired(false);
+        lastKnownLocation =
+                locationManager.getLastKnownLocation(locationManager.getBestProvider(criteria, true));
     }
 
     @Override
@@ -60,5 +77,13 @@ public class MapViewFragment extends Fragment  implements OnMapReadyCallback {
         // Other supported types include: MAP_TYPE_NORMAL,
         // MAP_TYPE_TERRAIN, MAP_TYPE_SATELLITE and MAP_TYPE_NONE
         map.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+
+        final Intent intent = new Intent(Intent.ACTION_VIEW,
+                Uri.parse("http://maps.google.com/maps?"+"saddr="
+                        + lastKnownLocation.getLatitude() + "," + lastKnownLocation.getLongitude() + "&daddr="
+                        + (lastKnownLocation.getLatitude()+0.2) + "," + (lastKnownLocation.getLongitude()-.3)));
+        startActivity(intent);
+
     }
+
 }
