@@ -54,7 +54,7 @@ public class MapViewFragment extends Fragment  implements OnMapReadyCallback {
 
         //link UI here
         MapFragment mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
+//        mapFragment.getMapAsync(this);
 
 
         return view;
