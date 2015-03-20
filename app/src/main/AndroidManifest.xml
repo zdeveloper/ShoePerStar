@@ -32,7 +32,9 @@
 
         <meta-data
             android:name="com.google.android.maps.v2.API_KEY"
-            android:value="AIzaSyDJmQDFzVDgIZoeD6rg9ib8LRRPEYIGRBU"/>
+            android:value="AIzaSyCz45nHp7DTlWJxEANp_4Oow0feLH4TxUs"/>
+        <!-- Zedd's key AIzaSyDJmQDFzVDgIZoeD6rg9ib8LRRPEYIGRBU -->
+        <!-- Jonny's key AIzaSyAHc_PjfKT-J0fhuJTydD_qwYO_YUmvvko -->
 
         <activity
             android:name=".Activity.SplashActivity"
