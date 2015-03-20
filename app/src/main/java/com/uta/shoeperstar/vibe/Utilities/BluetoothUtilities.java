@@ -13,13 +13,14 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.os.Handler;
 import android.widget.Toast;
 
 
 import com.uta.shoeperstar.vibe.R;
 
 import java.util.ArrayList;
+import java.util.Timer;
+import java.util.TimerTask;
 
 /**
  * Created by Zedd on 3/20/2015.
@@ -30,7 +31,6 @@ public class BluetoothUtilities {
     private BluetoothAdapter mBluetoothAdapter;
     private Activity activity;  //used to keep track of parent activity
 
-    private Handler mHandler;   //used to keep track of post delay to stop ble scan
 
     private ArrayList<BluetoothDevice> bleDevicesList = new ArrayList<>();
     private boolean mScanning = false;
@@ -42,7 +42,6 @@ public class BluetoothUtilities {
 
         //init some parameter
         this.activity = activity;
-        this.mHandler = new Handler();
 
         //initialize bluetooth
         final BluetoothManager bluetoothManager =
@@ -59,7 +58,7 @@ public class BluetoothUtilities {
         if (!activity.getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
             Toast.makeText(activity, "BLE IS NOT SUPPORTED, SORRY", Toast.LENGTH_SHORT).show();
         } else {
-            scanLeDevice(true);
+            scanLeDevice();
         }
     }
 
@@ -74,24 +73,34 @@ public class BluetoothUtilities {
 
     };
 
-    private void scanLeDevice(final boolean enable) {
-        if (enable) {
-            // Stops scanning after a pre-defined scan period.
-            mHandler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    mScanning = false;
-                    mBluetoothAdapter.stopLeScan(mLeScanCallback);
-                    displaySearchResults();
-                }
-            }, SCAN_PERIOD);
-            mScanning = true;
-            mBluetoothAdapter.startLeScan(mLeScanCallback);
-        } else {
-            mScanning = false;
-            mBluetoothAdapter.stopLeScan(mLeScanCallback);
-            displaySearchResults();
+    private void scanLeDevice() {
+
+        bleDevicesList.clear();
+        mBluetoothAdapter.startLeScan(mLeScanCallback);
+        //schedule handler to stop the scan
+        //mHandler.postDelayed(mStopRunnable, 2500);
+
+        //call stop scanning after 2.5 seconds
+        Timer timer = new Timer();
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                mStopRunnable.run();
+            }
+        }, SCAN_PERIOD);
+    }
+
+    private Runnable mStopRunnable = new Runnable() {
+        @Override
+        public void run() {
+            stopScan();
         }
+    };
+
+
+    private void stopScan() {
+        mBluetoothAdapter.stopLeScan(mLeScanCallback);
+        if(bleDevicesList.size() > 0) displaySearchResults();
     }
 
     void displaySearchResults() {
@@ -117,17 +126,24 @@ public class BluetoothUtilities {
 
         @Override
         public Dialog onCreateDialog(Bundle savedInstanceState) {
-            // Use the Builder class for convenient dialog construction
-            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-            builder.setTitle(R.string.title_ble_device_list)
-                    .setItems(getArrayOfBleDevices(), new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int which) {
-                            // The 'which' argument contains the index position of the selected item
-                            BluetoothDevice device = bleDevicesList.get(which);
-                            //we have the device
-                        }
-                    });
+
+                // Use the Builder class for convenient dialog construction
+                AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+                builder.setTitle(R.string.title_ble_device_list)
+                        .setItems(getArrayOfBleDevices(), new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                // The 'which' argument contains the index position of the selected item
+                                BluetoothDevice device = bleDevicesList.get(which);
+                                //we have the device
+                            }
+                        });
+
             return builder.create();
+        }
+
+        @Override
+        public void onDismiss(DialogInterface dialog) {
+            this.onDestroy();
         }
     }
 }

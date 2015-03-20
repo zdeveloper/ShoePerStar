@@ -9,4 +9,12 @@
 
     <string name="title_ble_device_list">Pick a BLE Device</string>
 
+    <string name="ZEDD_KEY">AIzaSyDJmQDFzVDgIZoeD6rg9ib8LRRPEYIGRBU</string>
+    <string name="JONNY_KEY">AIzaSyAHc_PjfKT-J0fhuJTydD_qwYO_YUmvvko</string>
+
+
+    <!-- Zedd's key AIzaSyDJmQDFzVDgIZoeD6rg9ib8LRRPEYIGRBU -->
+    <!-- Jonny's key AIzaSyAHc_PjfKT-J0fhuJTydD_qwYO_YUmvvko -->
+
+
 </resources>
