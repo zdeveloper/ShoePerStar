@@ -5,6 +5,8 @@
     <string name="hello_world">Hello world! from the Shoe-Per-Starts</string>
     <string name="action_settings">Settings</string>
     <string name="hello_blank_fragment">Hello blank fragment</string>
-    <string name="title_activity_main">MainActivity</string>
+    <string name="title_activity_main">Shoe-Mi-Kul</string>
+
+    <string name="title_ble_device_list">Pick a BLE Device</string>
 
 </resources>
