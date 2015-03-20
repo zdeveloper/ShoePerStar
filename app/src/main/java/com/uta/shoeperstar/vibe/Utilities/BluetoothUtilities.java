@@ -8,14 +8,18 @@ import android.app.DialogFragment;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.widget.Toast;
 
 
+import com.uta.shoeperstar.vibe.BluetoothShoeServiceRight;
 import com.uta.shoeperstar.vibe.R;
 
 import java.util.ArrayList;
@@ -118,6 +122,35 @@ public class BluetoothUtilities {
         return devices;
     }
 
+
+    private BluetoothShoeServiceRight rightShoeService;
+    private Intent btRightShoeServiceIntent;
+
+    /**
+     * This handles getting an instance of the right arm service
+     */
+    private ServiceConnection rightServiceConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            BluetoothShoeServiceRight.BluetoothServiceBinder binder = (BluetoothShoeServiceRight.BluetoothServiceBinder) service;
+            rightShoeService  = binder.getService();
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+
+        }
+    };
+
+    void startRightShoeService(String address){
+        if(btRightShoeServiceIntent == null){
+            btRightShoeServiceIntent = new Intent(activity, BluetoothShoeServiceRight.class);
+        }
+        btRightShoeServiceIntent.putExtra(BluetoothShoeServiceRight.PARAM_DEVICE_ADDRESS, address);
+        activity.bindService(btRightShoeServiceIntent, rightServiceConnection, Context.BIND_NOT_FOREGROUND );
+        activity.startService(btRightShoeServiceIntent);
+    }
+
     @SuppressLint("ValidFragment")
     class DisplayDeviceListDialog extends DialogFragment {
 
@@ -135,6 +168,7 @@ public class BluetoothUtilities {
                                 // The 'which' argument contains the index position of the selected item
                                 BluetoothDevice device = bleDevicesList.get(which);
                                 //we have the device
+                                startRightShoeService(device.getAddress());
                             }
                         });
 
