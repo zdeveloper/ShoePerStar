@@ -1,98 +1,135 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
-    android:layout_height="match_parent" tools:context="com.uta.shoeperstar.vibe.Fragment.DashboardFragment"
-    android:background="#ffffffff">
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#ffffffff"
+    tools:context="com.uta.shoeperstar.vibe.Fragment.DashboardFragment">
 
 
-    android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
-    android:layout_alignParentTop="true">
-
-
-    <ImageView
-        android:layout_width="100dp"
-        android:layout_height="100dp"
-        android:id="@+id/imageView3"
-        android:src="@drawable/leftshoegreen"
-        android:layout_marginStart="57dp"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentStart="true" />
-
-    <ImageView
-        android:layout_width="100dp"
-        android:layout_height="100dp"
-        android:id="@+id/imageView5"
-        android:src="@drawable/rightshoegreen"
-        android:layout_alignParentTop="true"
-        android:layout_toEndOf="@+id/textView" />
-
-    <Button
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:text="Get Pulse"
-        android:id="@+id/startPulseButton"
-        android:background="#ff43ff50"
-        android:textColor="#ffffffff"
-        android:layout_alignParentBottom="true"
-        android:layout_marginBottom="48dp"
-        android:layout_alignEnd="@+id/batteryLevelRight"
-        android:layout_alignStart="@+id/textView2" />
+        android:layout_gravity="center_horizontal|top"
+        android:gravity="center"
+        android:layout_margin="15dp"
+        android:orientation="horizontal">
 
-    <TextView
-        android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="15dp"
+            android:gravity="center"
+            android:orientation="vertical">
+
+
+            <ImageView
+                android:id="@+id/imageVie5"
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                android:src="@drawable/leftshoegreen" />
+
+            <TextView
+                android:id="@+id/batteryLevelLeft"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Left Shoe"
+                android:textAppearance="?android:attr/textAppearanceMedium" />
+
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <ImageView
+                android:id="@+id/imageView5"
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                android:src="@drawable/rightshoegreen" />
+
+            <TextView
+                android:id="@+id/batteryLevelRight"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Right Shoe"
+                android:textAppearance="?android:attr/textAppearanceMedium" />
+
+        </LinearLayout>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceMedium"
-        android:text="Left Shoe"
-        android:id="@+id/batteryLevelLeft"
-        android:layout_below="@+id/imageView3"
-        android:layout_alignStart="@+id/imageView3" />
+        android:orientation="vertical"
+        android:layout_margin="15dp">
 
-    <TextView
-        android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_margin="15dp">
+
+            <TextView
+                android:id="@+id/textView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Steps to Date:"
+                android:textAppearance="?android:attr/textAppearanceLarge" />
+
+            <EditText
+                android:id="@+id/stepCount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ems="10"
+                android:inputType="number" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_margin="15dp">
+
+            <TextView
+                android:id="@+id/textView2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Distance Traveled: "
+                android:textAppearance="?android:attr/textAppearanceLarge" />
+
+            <EditText
+                android:id="@+id/distance"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ems="10"
+                android:inputType="number" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceMedium"
-        android:text="Right Shoe"
-        android:id="@+id/batteryLevelRight"
-        android:layout_alignTop="@+id/batteryLevelLeft"
-        android:layout_alignEnd="@+id/imageView5" />
+        android:gravity="center"
+        android:layout_margin="15dp">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="100dp"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="Steps to Date:"
-        android:id="@+id/textView"
-        android:layout_marginTop="62dp"
-        android:layout_below="@+id/batteryLevelLeft"
-        android:layout_alignStart="@+id/batteryLevelLeft" />
+        <Button
+            android:id="@+id/startPulseButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:text="Get Pulse"
+            android:textColor="#ffffffff" />
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="50dp"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="Distance Traveled: "
-        android:id="@+id/textView2"
-        android:layout_below="@+id/textView"
-        android:layout_alignStart="@+id/textView" />
+        </LinearLayout>
 
-    <EditText
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:inputType="number"
-        android:ems="10"
-        android:id="@+id/stepCount"
-        android:layout_alignTop="@+id/textView"
-        android:layout_alignStart="@+id/batteryLevelRight"
-        android:layout_alignEnd="@+id/textView2" />
 
-    <EditText
-        android:layout_width="50dp"
-        android:layout_height="wrap_content"
-        android:inputType="number"
-        android:ems="10"
-        android:id="@+id/distance"
-        android:layout_below="@+id/textView"
-        android:layout_toEndOf="@+id/textView2" />
-</RelativeLayout>
+</LinearLayout>
 
 
