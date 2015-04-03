@@ -1,0 +1,34 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.uta.shoeperstar.vibe.Fragment.DataVisualizationFragment">
+
+
+    <ImageButton
+        android:layout_width="182dp"
+        android:layout_height="182dp"
+        android:id="@+id/heartBeatButton"
+        android:layout_gravity="right|top"
+        android:background="@drawable/heart_beat"/>
+
+    <ImageButton
+        android:layout_width="192dp"
+        android:layout_height="192dp"
+        android:id="@+id/stepCountButton"
+        android:layout_gravity="left|top"
+        android:background='@drawable/step_count' />
+
+    <com.github.mikephil.charting.charts.LineChart
+        android:id="@+id/stepChart"
+        android:layout_width="234dp"
+        android:layout_height="346dp"
+        android:layout_gravity="center_horizontal|bottom"
+        android:visibility="invisible"/>
+
+    <com.github.mikephil.charting.charts.LineChart
+        android:id="@+id/pulseChart"
+        android:layout_width="234dp"
+        android:layout_height="346dp"
+        android:layout_gravity="center_horizontal|bottom"
+        android:visibility="invisible"/>
+</FrameLayout>

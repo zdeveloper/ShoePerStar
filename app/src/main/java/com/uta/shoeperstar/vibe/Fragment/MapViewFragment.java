@@ -17,6 +17,7 @@ import com.uta.shoeperstar.vibe.R;
 public class MapViewFragment extends Fragment  implements OnMapReadyCallback {
 
     private final static LatLng HOME_LOCATION = new LatLng(32.731, -97.1145);		//HOME LOCATION
+    private  static View view;
 
     public MapViewFragment() {
         // Required empty public constructor
@@ -32,12 +33,13 @@ public class MapViewFragment extends Fragment  implements OnMapReadyCallback {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        View view = inflater.inflate(R.layout.fragment_map, container, false);
+        if(view == null) view = inflater.inflate(R.layout.fragment_map, container, false);
 
 
         //link UI here
+
         MapFragment mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
+//        mapFragment.getMapAsync(this);
 
 
         return view;

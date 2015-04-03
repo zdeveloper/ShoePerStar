@@ -4,6 +4,7 @@ import android.app.FragmentManager;
 import android.support.v13.app.FragmentStatePagerAdapter;
 
 import com.uta.shoeperstar.vibe.Fragment.DashboardFragment;
+import com.uta.shoeperstar.vibe.Fragment.DataVisualizationFragment;
 import com.uta.shoeperstar.vibe.Fragment.MapViewFragment;
 import com.uta.shoeperstar.vibe.Fragment.SettingsFragment;
 
@@ -18,7 +19,7 @@ import com.uta.shoeperstar.vibe.Fragment.SettingsFragment;
  */
 public class TabsPagerAdapter extends FragmentStatePagerAdapter {
 
-    private final String[] TITLES = { "Dashboard", "Map", "Settings" };
+    private final String[] TITLES = { "Dashboard", "Map", "Settings", "Data Visualization" };
 
     public TabsPagerAdapter(FragmentManager fm) {
         super(fm);
@@ -34,6 +35,8 @@ public class TabsPagerAdapter extends FragmentStatePagerAdapter {
                 return new MapViewFragment();
             case 2:
                 return new SettingsFragment();
+            case 3:
+                return new DataVisualizationFragment();
         }
 
         return null;
@@ -42,7 +45,7 @@ public class TabsPagerAdapter extends FragmentStatePagerAdapter {
     @Override
     public int getCount() {
         // get item count - equal to number of tabs
-        return 3;
+        return 4;
     }
 
 

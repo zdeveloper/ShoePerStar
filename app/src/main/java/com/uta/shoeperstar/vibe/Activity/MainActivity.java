@@ -10,6 +10,7 @@ import android.view.MenuItem;
 import com.astuetz.PagerSlidingTabStrip;
 import com.uta.shoeperstar.vibe.Adapter.TabsPagerAdapter;
 import com.uta.shoeperstar.vibe.R;
+import com.uta.shoeperstar.vibe.Utilities.BluetoothUtilities;
 
 
 public class MainActivity extends ActionBarActivity {
@@ -24,7 +25,6 @@ public class MainActivity extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-
         tabs = (PagerSlidingTabStrip) findViewById(R.id.tabs);
         pager = (ViewPager) findViewById(R.id.pager);
         adapter = new TabsPagerAdapter(getFragmentManager());
@@ -36,8 +36,11 @@ public class MainActivity extends ActionBarActivity {
 
         tabs.setViewPager(pager);
 
-    }
 
+        //call on Bluetooth Utilities
+        new BluetoothUtilities(this);
+
+    }
 
 
     @Override
