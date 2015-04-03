@@ -1,21 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-     <!--<style name="AppTheme" parent="android:Theme.Material.Light">-->
- 
-         <!-- Main theme colors -->
-        <!--   your app branding color for the app bar -->
-        <!--
-        <item name="android:colorPrimary">@color/primary</item>
-        -->
-        <!--   darker variant for the status bar and contextual app bars -->
-        <!--
-        item name="android:colorPrimaryDark">@color/primary_dark</item>
-        -->
-        <!--   theme UI controls like checkboxes and text fields -->
-        <!--
-        <item name="android:colorAccent">@color/accent</item>
-        -->
+     <style name="AppTheme" parent="android:Theme.Material.Light">
 
-    <!--</style>-->
+         <!--   your app branding color for the app bar -->
+         <item name="android:colorPrimary">@color/primary</item>
+         <!--   darker variant for the status bar and contextual app bars -->
+         <item name="android:colorPrimaryDark">@color/primary_dark</item>
+         <!--   theme UI controls like checkboxes and text fields -->
+         <item name="android:colorAccent">@color/accent</item>
 
+         <item name="android:textColorPrimary">@color/primary_text</item>
+         <item name="android:textColorSecondary">@color/secondary_text</item>
+
+         <item name="android:icon">@color/icons</item>
+         <item name="android:divider">@color/divider</item>
+
+    </style>
 </resources>

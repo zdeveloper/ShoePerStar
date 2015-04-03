@@ -19,6 +19,8 @@ public class MapViewFragment extends Fragment  implements OnMapReadyCallback {
     private final static LatLng HOME_LOCATION = new LatLng(32.731, -97.1145);		//HOME LOCATION
     private  static View view;
 
+    private static GoogleMap map;
+
     public MapViewFragment() {
         // Required empty public constructor
     }
@@ -39,7 +41,7 @@ public class MapViewFragment extends Fragment  implements OnMapReadyCallback {
         //link UI here
 
         MapFragment mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.map);
-//        mapFragment.getMapAsync(this);
+        if(map == null) mapFragment.getMapAsync(this);
 
 
         return view;
@@ -58,6 +60,7 @@ public class MapViewFragment extends Fragment  implements OnMapReadyCallback {
      */
     @Override
     public void onMapReady(GoogleMap map) {
+        this.map = map;
         map.animateCamera(CameraUpdateFactory.newLatLngZoom(HOME_LOCATION, 15));
         // Other supported types include: MAP_TYPE_NORMAL,
         // MAP_TYPE_TERRAIN, MAP_TYPE_SATELLITE and MAP_TYPE_NONE

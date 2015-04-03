@@ -3,11 +3,10 @@ package com.uta.shoeperstar.vibe.Activity;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
-import android.util.TypedValue;
 import android.view.Menu;
 import android.view.MenuItem;
 
-import com.astuetz.PagerSlidingTabStrip;
+import com.material.widget.TabIndicator;
 import com.uta.shoeperstar.vibe.Adapter.TabsPagerAdapter;
 import com.uta.shoeperstar.vibe.R;
 import com.uta.shoeperstar.vibe.Utilities.BluetoothUtilities;
@@ -15,7 +14,7 @@ import com.uta.shoeperstar.vibe.Utilities.BluetoothUtilities;
 
 public class MainActivity extends ActionBarActivity {
 
-    private PagerSlidingTabStrip tabs;
+    private TabIndicator tabs;
     private ViewPager pager;
     private TabsPagerAdapter adapter;
 
@@ -25,15 +24,11 @@ public class MainActivity extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        tabs = (PagerSlidingTabStrip) findViewById(R.id.tabs);
+        tabs = (TabIndicator) findViewById(R.id.tabs);
         pager = (ViewPager) findViewById(R.id.pager);
         adapter = new TabsPagerAdapter(getFragmentManager());
 
         pager.setAdapter(adapter);
-
-//        final int pageMargin = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 3, getResources().getDisplayMetrics());
-//        pager.setPageMargin(pageMargin);
-
         tabs.setViewPager(pager);
 
 
