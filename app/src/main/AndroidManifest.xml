@@ -25,12 +25,14 @@
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
 
+        <uses-library android:name="com.google.android.maps"/>
+
 
         <meta-data
             android:name="com.google.android.maps.v2.API_KEY"
             android:value="AIzaSyCz45nHp7DTlWJxEANp_4Oow0feLH4TxUs"/>
         <!-- Zedd's key AIzaSyDJmQDFzVDgIZoeD6rg9ib8LRRPEYIGRBU -->
-        <!-- Jonny's key AIzaSyAHc_PjfKT-J0fhuJTydD_qwYO_YUmvvko -->
+        <!-- Jonny's key AIzaSyCz45nHp7DTlWJxEANp_4Oow0feLH4TxUs -->
 
         <activity
             android:name=".Activity.SplashActivity"

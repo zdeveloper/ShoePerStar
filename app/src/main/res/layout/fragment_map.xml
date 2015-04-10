@@ -8,4 +8,12 @@
         android:layout_height="match_parent"
         android:name="com.google.android.gms.maps.MapFragment"/>
 
+    <EditText
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:inputType="textPostalAddress"
+        android:ems="10"
+        android:id="@+id/mapSearchBox"
+        android:layout_gravity="center_horizontal|top" />
+
 </FrameLayout>
