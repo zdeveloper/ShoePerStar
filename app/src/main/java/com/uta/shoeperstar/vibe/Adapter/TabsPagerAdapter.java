@@ -3,7 +3,9 @@ import android.app.Fragment;
 import android.app.FragmentManager;
 import android.support.v13.app.FragmentStatePagerAdapter;
 
+import com.material.widget.TabIndicator;
 import com.uta.shoeperstar.vibe.Fragment.DashboardFragment;
+import com.uta.shoeperstar.vibe.Fragment.DataVisualizationFragment;
 import com.uta.shoeperstar.vibe.Fragment.MapViewFragment;
 import com.uta.shoeperstar.vibe.Fragment.SettingsFragment;
 
@@ -16,9 +18,9 @@ import com.uta.shoeperstar.vibe.Fragment.SettingsFragment;
 /**
  * Created by zedd on 2/7/15.
  */
-public class TabsPagerAdapter extends FragmentStatePagerAdapter {
+public class TabsPagerAdapter extends FragmentStatePagerAdapter implements TabIndicator.TabTextProvider{
 
-    private final String[] TITLES = { "Dashboard", "Map", "Settings" };
+    private final String[] TITLES = { "Home", "Map", "Settings", "Stats" };
 
     public TabsPagerAdapter(FragmentManager fm) {
         super(fm);
@@ -34,6 +36,8 @@ public class TabsPagerAdapter extends FragmentStatePagerAdapter {
                 return new MapViewFragment();
             case 2:
                 return new SettingsFragment();
+            case 3:
+                return new DataVisualizationFragment();
         }
 
         return null;
@@ -42,7 +46,7 @@ public class TabsPagerAdapter extends FragmentStatePagerAdapter {
     @Override
     public int getCount() {
         // get item count - equal to number of tabs
-        return 3;
+        return TITLES.length;
     }
 
 
@@ -51,4 +55,8 @@ public class TabsPagerAdapter extends FragmentStatePagerAdapter {
         return TITLES[position];
     }
 
+    @Override
+    public String getText(int position) {
+        return TITLES[position].toUpperCase();
+    }
 }

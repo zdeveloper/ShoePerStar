@@ -2,6 +2,7 @@ package com.uta.shoeperstar.vibe.Utilities;
 
 import android.location.Address;
 import android.net.Uri;
+import android.util.Log;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -17,6 +18,37 @@ import java.io.InputStream;
 import java.util.Locale;
 
 public class Navigation {
+
+    public static JSONObject getDirection(String origin, String destination) {
+        String uri = "https://maps.googleapis.com/maps/api/directions/output?"
+                + "&origin=" + origin
+                + "&destination=" + destination
+                + "&mode=walking";
+
+        String result;
+        try {
+            result = httpGet(uri);
+
+            JSONObject jsonObject;
+            try {
+                jsonObject = new JSONObject(result);
+
+                Log.d("json route", jsonObject.toString());
+
+                return jsonObject;
+
+            } catch (JSONException e) {
+                e.printStackTrace();
+                // TODO
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            // TODO
+        }
+
+        return null;
+    }
 
     public static Address getLatLongFromAddress(String inputAddress) {
         String uri = "http://maps.google.com/maps/api/geocode/json?address=" +
