@@ -2,7 +2,6 @@ package com.uta.shoeperstar.vibe.Utilities;
 
 import android.location.Address;
 import android.net.Uri;
-import android.util.Log;
 
 import com.google.android.gms.maps.model.LatLng;
 
@@ -12,7 +11,6 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
@@ -56,76 +54,44 @@ public class NavigationUtilities {
         return poly;
     }
 
-    public static JSONObject getDirection(String origin, String destination) {
+    public static JSONObject getDirection(String origin, String destination) throws Exception {
         String uri = "https://maps.googleapis.com/maps/api/directions/json?"
                 + "origin=" + origin
                 + "&destination=" + destination
                 + "&mode=walking";
 
-        String result;
-        try {
-            result = httpGet(uri);
+        String result = httpGet(uri);
 
-            JSONObject jsonObject;
-            try {
-                jsonObject = new JSONObject(result);
-
-                return jsonObject;
-
-            } catch (JSONException e) {
-                // TODO
-                Log.e("", "ERROR", e);
-            }
-
-        } catch (IOException e) {
-            // TODO
-            Log.e("", "ERROR", e);
-        }
-
-        return null;
+        return new JSONObject(result);
     }
 
-    public static Address getLatLongFromAddress(String inputAddress) {
+    public static Address getLatLongFromAddress(String inputAddress) throws Exception {
         String uri = "http://maps.google.com/maps/api/geocode/json?address=" +
                 inputAddress + "&sensor=false";
 
-        String result;
-        try {
-            result = httpGet(uri);
+        String result = httpGet(uri);
 
-            JSONObject jsonObject;
-            try {
-                jsonObject = new JSONObject(result);
+        JSONObject jsonObject;
 
-                double lng = ((JSONArray) jsonObject.get("results")).getJSONObject(0)
-                        .getJSONObject("geometry").getJSONObject("location")
-                        .getDouble("lng");
+        jsonObject = new JSONObject(result);
 
-                double lat = ((JSONArray) jsonObject.get("results")).getJSONObject(0)
-                        .getJSONObject("geometry").getJSONObject("location")
-                        .getDouble("lat");
+        double lng = ((JSONArray) jsonObject.get("results")).getJSONObject(0)
+                .getJSONObject("geometry").getJSONObject("location")
+                .getDouble("lng");
 
-                String addressStr = ((JSONArray) jsonObject.get("results")).getJSONObject(0)
-                        .getString("formatted_address");
+        double lat = ((JSONArray) jsonObject.get("results")).getJSONObject(0)
+                .getJSONObject("geometry").getJSONObject("location")
+                .getDouble("lat");
 
-                Address resultAddress = new Address(Locale.US);
-                resultAddress.setLongitude(lng);
-                resultAddress.setLatitude(lat);
-                resultAddress.setAddressLine(0, addressStr);
+        String addressStr = ((JSONArray) jsonObject.get("results")).getJSONObject(0)
+                .getString("formatted_address");
 
-                return resultAddress;
+        Address resultAddress = new Address(Locale.US);
+        resultAddress.setLongitude(lng);
+        resultAddress.setLatitude(lat);
+        resultAddress.setAddressLine(0, addressStr);
 
-            } catch (JSONException e) {
-                e.printStackTrace();
-                // TODO
-            }
-
-        } catch (IOException e) {
-            e.printStackTrace();
-            // TODO
-        }
-
-        return null;
+        return resultAddress;
     }
 
     public static String httpGet(String uri) throws IOException{

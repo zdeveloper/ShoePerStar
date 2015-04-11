@@ -4,25 +4,32 @@ import android.app.Fragment;
 import android.app.FragmentManager;
 import android.content.Context;
 import android.graphics.Color;
+import android.graphics.Point;
 import android.location.Address;
 import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.AbsoluteLayout;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.Projection;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
@@ -37,12 +44,26 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 
 
-public class MapViewFragment extends Fragment implements OnMapReadyCallback {
+public class MapViewFragment extends Fragment implements OnMapReadyCallback,
+        GoogleMap.OnMapClickListener, GoogleMap.OnMarkerClickListener {
 
     private static View view;
     private static GoogleMap googleMap;
     private Location lastKnownLocation;
     private EditText mapSearchBox;
+
+    // Marker info window stuff
+    private boolean cameraFocusedToMarker;
+    private View markerInfoWindow;
+    private TextView markerText;
+    private TextView markerButton;
+    private LatLng trackedPosition;
+    private int popupXOffset;
+    private int popupYOffset;
+    private Handler markerInfoWindowHandler;
+    private Runnable positionUpdaterRunnable;
+    private ViewTreeObserver.OnGlobalLayoutListener infoWindowLayoutListener;
+    private AbsoluteLayout.LayoutParams overlayLayoutParams;
 
     public MapViewFragment() {
         // Required empty public constructor
@@ -70,7 +91,6 @@ public class MapViewFragment extends Fragment implements OnMapReadyCallback {
                     imm.hideSoftInputFromWindow(mapSearchBox.getWindowToken(), 0);
 
                     new searchAddressAsync(mapSearchBox.getText().toString()).execute();
-                    new getDirectionAsync(mapSearchBox.getText().toString()).execute();
                     mapSearchBox.setText("", TextView.BufferType.EDITABLE);
                     return true;
                 }
@@ -85,45 +105,50 @@ public class MapViewFragment extends Fragment implements OnMapReadyCallback {
             public void run() {
                 LatLng addressLatLng = new LatLng(address.getLatitude(), address.getLongitude());
 
+                cameraFocusedToMarker = true;
                 googleMap.animateCamera(CameraUpdateFactory.newLatLng(addressLatLng));
                 googleMap.clear();
 
                 Marker searchResultMarker = googleMap.addMarker(new MarkerOptions()
                         .position(addressLatLng)
-                        .title(address.getAddressLine(0))
-                        .snippet(address.getAddressLine(0)).draggable(true)
-                        .icon(BitmapDescriptorFactory
-                                .defaultMarker(BitmapDescriptorFactory.HUE_RED)));
+                        .icon(BitmapDescriptorFactory.fromResource(R.drawable.map_marker_pin)));
 
                 searchResultMarker.showInfoWindow();
             }
         });
     }
 
-    private void drawNavigationRoute(JSONObject navigationRoutes) {
-        ArrayList<LatLng> points;
-        PolylineOptions polyLineOptions = new PolylineOptions();
+    private void drawNavigationRoute(final JSONObject navigationRoutes) {
+        getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                ArrayList<LatLng> points;
+                PolylineOptions polyLineOptions = new PolylineOptions();
 
-        try {
-            JSONArray steps = ((JSONArray) ((JSONArray) ((JSONArray) navigationRoutes.get("routes")).getJSONObject(0)
-                    .get("legs")).getJSONObject(0).get("steps"));
+                try {
+                    JSONArray steps = ((JSONArray) ((JSONArray) ((JSONArray) navigationRoutes.get("routes")).getJSONObject(0)
+                            .get("legs")).getJSONObject(0).get("steps"));
 
-            // traversing through routes
-            for (int i = 0; i < steps.length(); i++) {
-                String encodedPolyline = ((JSONObject) steps.get(i)).getJSONObject("polyline").getString("points");
+                    // traversing through routes
+                    for (int i = 0; i < steps.length(); i++) {
+                        String encodedPolyline = ((JSONObject) steps.get(i)).getJSONObject("polyline").getString("points");
 
-                points = NavigationUtilities.decodePolyline(encodedPolyline);
+                        points = NavigationUtilities.decodePolyline(encodedPolyline);
 
-                polyLineOptions.addAll(points);
-                polyLineOptions.width(10);
-                polyLineOptions.color(Color.GREEN);
+                        polyLineOptions.addAll(points);
+                        polyLineOptions.width(10);
+                        polyLineOptions.color(Color.GREEN);
+                    }
+
+                    googleMap.addPolyline(polyLineOptions);
+
+                } catch (Exception e) {
+                    Log.d("ERROR", e.toString());
+
+                    Toast.makeText(getActivity(), "Could not navigate here", Toast.LENGTH_SHORT).show();
+                }
             }
-
-            googleMap.addPolyline(polyLineOptions);
-
-        } catch (Exception e) {
-            Log.d("ERROR", e.toString());
-        }
+        });
     }
 
     @Override
@@ -152,6 +177,58 @@ public class MapViewFragment extends Fragment implements OnMapReadyCallback {
         // This is called after on onCreateView
 
         initializeMapSearchBar();
+        initializeMarkerInfoWindow();
+        // TODO Add more map UI's such as search bar, start navigation button, etc.
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+
+        markerInfoWindow.getViewTreeObserver().removeGlobalOnLayoutListener(infoWindowLayoutListener);
+        markerInfoWindowHandler.removeCallbacks(positionUpdaterRunnable);
+        markerInfoWindowHandler = null;
+    }
+
+    public void initializeMarkerInfoWindow() {
+        markerInfoWindow = getView().findViewById(R.id.container_popup);
+        infoWindowLayoutListener = new InfoWindowLayoutListener();
+        markerInfoWindow.getViewTreeObserver().addOnGlobalLayoutListener(infoWindowLayoutListener);
+        overlayLayoutParams = (AbsoluteLayout.LayoutParams) markerInfoWindow.getLayoutParams();
+
+        markerText = (TextView) markerInfoWindow.findViewById(R.id.map_marker_text);
+        markerButton = (TextView) markerInfoWindow.findViewById(R.id.map_marker_button);
+
+        markerInfoWindowHandler = new Handler(Looper.getMainLooper());
+        positionUpdaterRunnable = new PositionUpdaterRunnable();
+        markerInfoWindowHandler.post(positionUpdaterRunnable);
+    }
+
+    @Override
+    public boolean onMarkerClick(final Marker marker) {
+        Projection projection = googleMap.getProjection();
+        trackedPosition = marker.getPosition();
+        Point trackedPoint = projection.toScreenLocation(trackedPosition);
+        trackedPoint.y -= popupYOffset / 2;
+        LatLng newCameraLocation = projection.fromScreenLocation(trackedPoint);
+        googleMap.animateCamera(CameraUpdateFactory.newLatLng(newCameraLocation));
+
+        markerText.setText(marker.getTitle());
+        markerButton.setOnClickListener(new TextView.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                new getDirectionAsync(marker.getPosition().latitude + "," + marker.getPosition().longitude).execute();
+            }
+        });
+
+        markerInfoWindow.setVisibility(View.VISIBLE);
+
+        return true;
+    }
+
+    @Override
+    public void onMapClick(LatLng latLng) {
+        markerInfoWindow.setVisibility(View.INVISIBLE);
     }
 
     @Override
@@ -163,15 +240,50 @@ public class MapViewFragment extends Fragment implements OnMapReadyCallback {
             public void onMyLocationChange(Location location) {
                 lastKnownLocation = location;
 
-                googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
-                        new LatLng(location.getLatitude(),
-                                location.getLongitude()), 15));
+                if (!cameraFocusedToMarker) {
+                    googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
+                            new LatLng(location.getLatitude(),
+                                    location.getLongitude()), 15));
+                }
             }
         });
 
         googleMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
         googleMap.setMyLocationEnabled(true);
-        googleMap.getUiSettings().setMapToolbarEnabled(true);
+        googleMap.setOnMapClickListener(this);
+        googleMap.setOnMarkerClickListener(this);
+    }
+
+    private class InfoWindowLayoutListener implements ViewTreeObserver.OnGlobalLayoutListener {
+        @Override
+        public void onGlobalLayout() {
+            popupXOffset = markerInfoWindow.getWidth() / 2;
+            popupYOffset = markerInfoWindow.getHeight();
+        }
+    }
+
+    private class PositionUpdaterRunnable implements Runnable {
+        private int lastXPosition = Integer.MIN_VALUE;
+        private int lastYPosition = Integer.MIN_VALUE;
+        private int markerHeight = getResources().getDrawable(R.drawable.map_marker_pin).getIntrinsicHeight();
+
+        @Override
+        public void run() {
+            markerInfoWindowHandler.postDelayed(this, 16);
+
+            if (trackedPosition != null && markerInfoWindow.getVisibility() == View.VISIBLE) {
+                Point targetPosition = googleMap.getProjection().toScreenLocation(trackedPosition);
+
+                if (lastXPosition != targetPosition.x || lastYPosition != targetPosition.y) {
+                    overlayLayoutParams.x = targetPosition.x - popupXOffset;
+                    overlayLayoutParams.y = targetPosition.y - popupYOffset - markerHeight - 30;
+                    markerInfoWindow.setLayoutParams(overlayLayoutParams);
+
+                    lastXPosition = targetPosition.x;
+                    lastYPosition = targetPosition.y;
+                }
+            }
+        }
     }
 
     private class searchAddressAsync extends AsyncTask<Void, Address, Address> {
@@ -187,9 +299,17 @@ public class MapViewFragment extends Fragment implements OnMapReadyCallback {
             try {
                 return NavigationUtilities.getLatLongFromAddress(toSearch);
             } catch (Exception e) {
-                Log.e("", "Something went wrong: ", e);
+                this.cancel(true);
+
                 return null;
             }
+        }
+
+        @Override
+        protected void onCancelled() {
+            super.onCancelled();
+
+            Toast.makeText(getActivity(), "Could not find address", Toast.LENGTH_SHORT).show();
         }
 
         @Override
@@ -214,9 +334,17 @@ public class MapViewFragment extends Fragment implements OnMapReadyCallback {
                 String latlngStr = lastKnownLocation.getLatitude() + "," + lastKnownLocation.getLongitude();
                 return NavigationUtilities.getDirection(latlngStr, toSearch);
             } catch (Exception e) {
-                Log.e("", "ERROR", e);
+                this.cancel(true);
+
                 return null;
             }
+        }
+
+        @Override
+        protected void onCancelled() {
+            super.onCancelled();
+
+            Toast.makeText(getActivity(), "Could not get navigation route", Toast.LENGTH_SHORT).show();
         }
 
         @Override
