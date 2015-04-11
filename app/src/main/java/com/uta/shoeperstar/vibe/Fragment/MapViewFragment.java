@@ -45,7 +45,7 @@ import java.util.ArrayList;
 
 
 public class MapViewFragment extends Fragment implements OnMapReadyCallback,
-        GoogleMap.OnMapClickListener, GoogleMap.OnMarkerClickListener {
+        GoogleMap.OnMapClickListener, GoogleMap.OnMarkerClickListener, GoogleMap.OnMapLongClickListener {
 
     private static View view;
     private static GoogleMap googleMap;
@@ -107,13 +107,12 @@ public class MapViewFragment extends Fragment implements OnMapReadyCallback,
 
                 cameraFocusedToMarker = true;
                 googleMap.animateCamera(CameraUpdateFactory.newLatLng(addressLatLng));
-                googleMap.clear();
+                //TODO googleMap.clear();
 
                 Marker searchResultMarker = googleMap.addMarker(new MarkerOptions()
                         .position(addressLatLng)
-                        .icon(BitmapDescriptorFactory.fromResource(R.drawable.map_marker_pin)));
-
-                searchResultMarker.showInfoWindow();
+                        .icon(BitmapDescriptorFactory.fromResource(R.drawable.map_destination_marker))
+                        .title("Cum get me bae!"));
             }
         });
     }
@@ -217,6 +216,7 @@ public class MapViewFragment extends Fragment implements OnMapReadyCallback,
         markerButton.setOnClickListener(new TextView.OnClickListener() {
             @Override
             public void onClick(View v) {
+                markerInfoWindow.setVisibility(View.INVISIBLE);
                 new getDirectionAsync(marker.getPosition().latitude + "," + marker.getPosition().longitude).execute();
             }
         });
@@ -240,6 +240,11 @@ public class MapViewFragment extends Fragment implements OnMapReadyCallback,
             public void onMyLocationChange(Location location) {
                 lastKnownLocation = location;
 
+                Marker currentLocationMarker = googleMap.addMarker(new MarkerOptions()
+                        .position(new LatLng(location.getLatitude(), location.getLongitude()))
+                        .icon(BitmapDescriptorFactory.fromResource(R.drawable.map_current_location_marker))
+                        .title("were my luv at??"));
+
                 if (!cameraFocusedToMarker) {
                     googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
                             new LatLng(location.getLatitude(),
@@ -252,6 +257,11 @@ public class MapViewFragment extends Fragment implements OnMapReadyCallback,
         googleMap.setMyLocationEnabled(true);
         googleMap.setOnMapClickListener(this);
         googleMap.setOnMarkerClickListener(this);
+    }
+
+    @Override
+    public void onMapLongClick(LatLng latLng) {
+        new searchAddressAsync(latLng.latitude + "," + latLng.longitude).execute();
     }
 
     private class InfoWindowLayoutListener implements ViewTreeObserver.OnGlobalLayoutListener {
