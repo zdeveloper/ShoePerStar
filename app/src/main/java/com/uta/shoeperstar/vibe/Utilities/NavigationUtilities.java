@@ -22,9 +22,9 @@ import java.util.Locale;
 
 public class NavigationUtilities {
 
-    public static ArrayList<LatLng> decodePoly(String encoded) {
+    public static ArrayList<LatLng> decodePolyline(String encoded) {
 
-        ArrayList<LatLng> poly = new ArrayList<LatLng>();
+        ArrayList<LatLng> poly = new ArrayList<>();
         int index = 0, len = encoded.length();
         int lat = 0, lng = 0;
 
@@ -62,31 +62,24 @@ public class NavigationUtilities {
                 + "&destination=" + destination
                 + "&mode=walking";
 
-        Log.d("URI", uri);
-
         String result;
         try {
             result = httpGet(uri);
 
             JSONObject jsonObject;
             try {
-                Log.d("Directions query result", result);
                 jsonObject = new JSONObject(result);
-
-                Log.d("json route", jsonObject.toString());
 
                 return jsonObject;
 
             } catch (JSONException e) {
-                e.printStackTrace();
                 // TODO
-                Log.d("ERROR", e.toString());
+                Log.e("", "ERROR", e);
             }
 
         } catch (IOException e) {
-            e.printStackTrace();
             // TODO
-            Log.d("ERROR", e.toString());
+            Log.e("", "ERROR", e);
         }
 
         return null;
