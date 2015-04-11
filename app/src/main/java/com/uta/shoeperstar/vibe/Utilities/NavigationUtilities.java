@@ -4,6 +4,8 @@ import android.location.Address;
 import android.net.Uri;
 import android.util.Log;
 
+import com.google.android.gms.maps.model.LatLng;
+
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -15,15 +17,52 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Locale;
 
-public class Navigation {
+public class NavigationUtilities {
+
+    public static ArrayList<LatLng> decodePoly(String encoded) {
+
+        ArrayList<LatLng> poly = new ArrayList<LatLng>();
+        int index = 0, len = encoded.length();
+        int lat = 0, lng = 0;
+
+        while (index < len) {
+            int b, shift = 0, result = 0;
+            do {
+                b = encoded.charAt(index++) - 63;
+                result |= (b & 0x1f) << shift;
+                shift += 5;
+            } while (b >= 0x20);
+            int dlat = ((result & 1) != 0 ? ~(result >> 1) : (result >> 1));
+            lat += dlat;
+
+            shift = 0;
+            result = 0;
+            do {
+                b = encoded.charAt(index++) - 63;
+                result |= (b & 0x1f) << shift;
+                shift += 5;
+            } while (b >= 0x20);
+            int dlng = ((result & 1) != 0 ? ~(result >> 1) : (result >> 1));
+            lng += dlng;
+
+            LatLng p = new LatLng((((double) lat / 1E5)),
+                    (((double) lng / 1E5)));
+            poly.add(p);
+        }
+
+        return poly;
+    }
 
     public static JSONObject getDirection(String origin, String destination) {
-        String uri = "https://maps.googleapis.com/maps/api/directions/output?"
-                + "&origin=" + origin
+        String uri = "https://maps.googleapis.com/maps/api/directions/json?"
+                + "origin=" + origin
                 + "&destination=" + destination
                 + "&mode=walking";
+
+        Log.d("URI", uri);
 
         String result;
         try {
@@ -31,6 +70,7 @@ public class Navigation {
 
             JSONObject jsonObject;
             try {
+                Log.d("Directions query result", result);
                 jsonObject = new JSONObject(result);
 
                 Log.d("json route", jsonObject.toString());
@@ -40,11 +80,13 @@ public class Navigation {
             } catch (JSONException e) {
                 e.printStackTrace();
                 // TODO
+                Log.d("ERROR", e.toString());
             }
 
         } catch (IOException e) {
             e.printStackTrace();
             // TODO
+            Log.d("ERROR", e.toString());
         }
 
         return null;

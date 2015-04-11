@@ -9,7 +9,6 @@ import android.view.MenuItem;
 import com.material.widget.TabIndicator;
 import com.uta.shoeperstar.vibe.Adapter.TabsPagerAdapter;
 import com.uta.shoeperstar.vibe.R;
-import com.uta.shoeperstar.vibe.Utilities.BluetoothUtilities;
 
 
 public class MainActivity extends Activity {
@@ -33,7 +32,7 @@ public class MainActivity extends Activity {
 
 
         //call on Bluetooth Utilities
-        new BluetoothUtilities(this);
+       // new BluetoothUtilities(this);
 
     }
 

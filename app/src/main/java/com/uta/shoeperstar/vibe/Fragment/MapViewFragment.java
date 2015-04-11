@@ -3,6 +3,7 @@ package com.uta.shoeperstar.vibe.Fragment;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.content.Context;
+import android.graphics.Color;
 import android.location.Address;
 import android.location.Criteria;
 import android.location.Location;
@@ -28,8 +29,14 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.PolylineOptions;
 import com.uta.shoeperstar.vibe.R;
-import com.uta.shoeperstar.vibe.Utilities.Navigation;
+import com.uta.shoeperstar.vibe.Utilities.NavigationUtilities;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
 
 
 public class MapViewFragment extends Fragment  implements OnMapReadyCallback {
@@ -71,6 +78,7 @@ public class MapViewFragment extends Fragment  implements OnMapReadyCallback {
                     imm.hideSoftInputFromWindow(mapSearchBox.getWindowToken(), 0);
 
                     new searchAddressAsync(mapSearchBox.getText().toString()).execute();
+                    new getDirectionAsync(mapSearchBox.getText().toString()).execute();
                     mapSearchBox.setText("", TextView.BufferType.EDITABLE);
                     return true;
                 }
@@ -90,7 +98,7 @@ public class MapViewFragment extends Fragment  implements OnMapReadyCallback {
         protected Address doInBackground(Void... voids) {
 
             try {
-                Address result = Navigation.getLatLongFromAddress(toSearch);
+                Address result = NavigationUtilities.getLatLongFromAddress(toSearch);
 
                 return result;
             } catch (Exception e) {
@@ -124,12 +132,64 @@ public class MapViewFragment extends Fragment  implements OnMapReadyCallback {
                                 .fromResource(R.drawable.rightshoered)));
 
                 searchResultMarker.showInfoWindow();
+
+
             }
         });
+    }
 
+    private class getDirectionAsync extends AsyncTask<Void, JSONObject, JSONObject> {
+        private String toSearch;
 
+        public getDirectionAsync(String toSearch) {
+            this.toSearch = toSearch;
+        }
 
+        @Override
+        protected JSONObject doInBackground(Void... voids) {
 
+            try {
+                return NavigationUtilities.getDirection(HOME_LOCATION.latitude + "," + HOME_LOCATION.longitude, toSearch);
+            } catch (Exception e) {
+                Log.e("", "Something went wrong: ", e);
+                return null;
+            }
+        }
+
+        @Override
+        protected void onPostExecute(JSONObject result) {
+            super.onPostExecute(result);
+
+            drawRoute(result);
+        }
+    }
+
+    private void drawRoute(JSONObject routes) {
+        ArrayList<LatLng> points = null;
+        PolylineOptions polyLineOptions = new PolylineOptions();
+
+        try {
+            JSONArray steps = ((JSONArray) ((JSONArray) ((JSONArray) routes.get("routes")).getJSONObject(0)
+                    .get("legs")).getJSONObject(0).get("steps")) ;
+
+            // traversing through routes
+            for (int i = 0; i < steps.length(); i++) {
+                points = new ArrayList<LatLng>();
+
+                String encodedPolyline = ((JSONObject) steps.get(i)).getJSONObject("polyline").getString("points");
+
+                points = NavigationUtilities.decodePoly(encodedPolyline);
+
+                polyLineOptions.addAll(points);
+                polyLineOptions.width(5);
+                polyLineOptions.color(Color.RED);
+            }
+
+            map.addPolyline(polyLineOptions);
+
+        } catch (Exception e) {
+            Log.d("ERROR", e.toString());
+        }
     }
 
 
@@ -183,7 +243,7 @@ public class MapViewFragment extends Fragment  implements OnMapReadyCallback {
         // Other supported types include: MAP_TYPE_NORMAL,
         // MAP_TYPE_TERRAIN, MAP_TYPE_SATELLITE and MAP_TYPE_NONE
         map.setMapType(GoogleMap.MAP_TYPE_NORMAL);
-
+        map.getUiSettings().setMapToolbarEnabled(true);
     }
 
 }
