@@ -1,4 +1,4 @@
-package com.uta.shoeperstar.vibe.Utility;
+package com.uta.shoeperstar.vibe.Utilities;
 
 /**
  * Created by saads_000 on 4/6/2015.
