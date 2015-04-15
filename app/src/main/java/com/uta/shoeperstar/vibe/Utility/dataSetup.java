@@ -12,38 +12,36 @@ package com.uta.shoeperstar.vibe.Utility;
 
         public dataSetup(){}
 
-        public dataSetup (int start, int startDate, int Data)
+        public dataSetup(int Data, int start, int startDate)
         {
             this.startT=start;
             this.startD=startDate;
             this.data=Data;
         }
 
+        public int getTime() {
+            return startT;
+        }
 
         public void setTime(int startTime) {
             this.startT = startTime;
+        }
+
+        public int getData() {
+            return data;
         }
 
         public void setData(int data) {
             this.data = data;
         }
 
+        public int getDate(){
+            return startD;
+        }
+
         public void setDate(int setDate) {
             this.startD = setDate;
 
-        }
-
-
-        public int getTime(){
-            return startT;
-        }
-
-        public int getData(){
-            return data;
-        }
-
-        public int getDate(){
-            return startD;
         }
 
 
