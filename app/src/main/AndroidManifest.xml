@@ -36,7 +36,7 @@
 
         <meta-data
             android:name="com.google.android.maps.v2.API_KEY"
-            android:value="@string/JONNY_KEY" />
+            android:value="@string/TOMMY_KEY" />
         <!-- Zedd's key AIzaSyDJmQDFzVDgIZoeD6rg9ib8LRRPEYIGRBU -->
         <!-- Jonny's key AIzaSyCz45nHp7DTlWJxEANp_4Oow0feLH4TxUs -->
 
