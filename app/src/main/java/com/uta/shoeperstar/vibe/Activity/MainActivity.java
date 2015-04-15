@@ -1,18 +1,17 @@
 package com.uta.shoeperstar.vibe.Activity;
 
-import android.support.v4.view.ViewPager;
-import android.support.v7.app.ActionBarActivity;
+import android.app.Activity;
 import android.os.Bundle;
+import android.support.v4.view.ViewPager;
 import android.view.Menu;
 import android.view.MenuItem;
 
 import com.material.widget.TabIndicator;
 import com.uta.shoeperstar.vibe.Adapter.TabsPagerAdapter;
 import com.uta.shoeperstar.vibe.R;
-import com.uta.shoeperstar.vibe.Utilities.BluetoothUtilities;
 
 
-public class MainActivity extends ActionBarActivity {
+public class MainActivity extends Activity {
 
     private TabIndicator tabs;
     private ViewPager pager;
@@ -33,7 +32,7 @@ public class MainActivity extends ActionBarActivity {
 
 
         //call on Bluetooth Utilities
-        new BluetoothUtilities(this);
+       // new BluetoothUtilities(this);
 
     }
 
