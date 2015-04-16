@@ -1,7 +1,10 @@
 package com.uta.shoeperstar.vibe.Utilities;
 
 import android.location.Address;
+import android.location.Location;
+import android.location.LocationListener;
 import android.net.Uri;
+import android.os.Bundle;
 
 import com.google.android.gms.maps.model.LatLng;
 
@@ -18,7 +21,14 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Locale;
 
-public class NavigationUtilities {
+public class NavigationUpdate implements LocationListener {
+
+    private JSONObject route;
+    private JSONArray steps;
+
+    public NavigationUpdate(JSONObject route) {
+
+    }
 
     public static ArrayList<LatLng> decodePolyline(String encoded) {
 
@@ -115,6 +125,26 @@ public class NavigationUtilities {
         }
 
         return stringBuilder.toString();
+    }
+
+    @Override
+    public void onLocationChanged(Location location) {
+
+    }
+
+    @Override
+    public void onStatusChanged(String provider, int status, Bundle extras) {
+
+    }
+
+    @Override
+    public void onProviderEnabled(String provider) {
+
+    }
+
+    @Override
+    public void onProviderDisabled(String provider) {
+
     }
 }
 

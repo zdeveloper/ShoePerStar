@@ -4,23 +4,19 @@ import android.app.Fragment;
 import android.app.FragmentManager;
 import android.content.Context;
 import android.graphics.Color;
-import android.graphics.Point;
 import android.location.Address;
 import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewTreeObserver;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.AbsoluteLayout;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -29,14 +25,14 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.Projection;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.uta.shoeperstar.vibe.R;
-import com.uta.shoeperstar.vibe.Utilities.NavigationUtilities;
+import com.uta.shoeperstar.vibe.Utilities.NavigationUpdate;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -45,25 +41,17 @@ import java.util.ArrayList;
 
 
 public class MapViewFragment extends Fragment implements OnMapReadyCallback,
-        GoogleMap.OnMapClickListener, GoogleMap.OnMarkerClickListener, GoogleMap.OnMapLongClickListener {
+        GoogleMap.OnMapLongClickListener, GoogleMap.OnInfoWindowClickListener {
 
     private static View view;
     private static GoogleMap googleMap;
+    private Marker searchResultMarker;
     private Location lastKnownLocation;
     private EditText mapSearchBox;
 
     // Marker info window stuff
     private boolean cameraFocusedToMarker;
-    private View markerInfoWindow;
-    private TextView markerText;
-    private TextView markerButton;
-    private LatLng trackedPosition;
-    private int popupXOffset;
-    private int popupYOffset;
-    private Handler markerInfoWindowHandler;
-    private Runnable positionUpdaterRunnable;
-    private ViewTreeObserver.OnGlobalLayoutListener infoWindowLayoutListener;
-    private AbsoluteLayout.LayoutParams overlayLayoutParams;
+
 
     public MapViewFragment() {
         // Required empty public constructor
@@ -107,12 +95,15 @@ public class MapViewFragment extends Fragment implements OnMapReadyCallback,
 
                 cameraFocusedToMarker = true;
                 googleMap.animateCamera(CameraUpdateFactory.newLatLng(addressLatLng));
-                //TODO googleMap.clear();
+                googleMap.clear();
 
-                Marker searchResultMarker = googleMap.addMarker(new MarkerOptions()
+                searchResultMarker = googleMap.addMarker(new MarkerOptions()
                         .position(addressLatLng)
-                        .icon(BitmapDescriptorFactory.fromResource(R.drawable.map_destination_marker))
-                        .title("Cum get me bae!"));
+                        .title(address.getFeatureName())
+                        .snippet(address.getAddressLine(1))
+                        .icon(BitmapDescriptorFactory.defaultMarker()));
+
+                searchResultMarker.showInfoWindow();
             }
         });
     }
@@ -123,6 +114,8 @@ public class MapViewFragment extends Fragment implements OnMapReadyCallback,
             public void run() {
                 ArrayList<LatLng> points;
                 PolylineOptions polyLineOptions = new PolylineOptions();
+                LatLngBounds.Builder bounds = new LatLngBounds.Builder();
+                bounds.include(new LatLng(lastKnownLocation.getLatitude(), lastKnownLocation.getLongitude()));
 
                 try {
                     JSONArray steps = ((JSONArray) ((JSONArray) ((JSONArray) navigationRoutes.get("routes")).getJSONObject(0)
@@ -132,13 +125,19 @@ public class MapViewFragment extends Fragment implements OnMapReadyCallback,
                     for (int i = 0; i < steps.length(); i++) {
                         String encodedPolyline = ((JSONObject) steps.get(i)).getJSONObject("polyline").getString("points");
 
-                        points = NavigationUtilities.decodePolyline(encodedPolyline);
+                        points = NavigationUpdate.decodePolyline(encodedPolyline);
+
+                        // Include points of polyline to zoom the path
+                        if (points.size() > 0) {
+                            bounds.include(points.get(points.size() - 1));
+                        }
 
                         polyLineOptions.addAll(points);
                         polyLineOptions.width(10);
-                        polyLineOptions.color(Color.GREEN);
+                        polyLineOptions.color(Color.RED);
                     }
 
+                    googleMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds.build(), 50));
                     googleMap.addPolyline(polyLineOptions);
 
                 } catch (Exception e) {
@@ -176,87 +175,64 @@ public class MapViewFragment extends Fragment implements OnMapReadyCallback,
         // This is called after on onCreateView
 
         initializeMapSearchBar();
-        initializeMarkerInfoWindow();
         // TODO Add more map UI's such as search bar, start navigation button, etc.
     }
 
     @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-
-        markerInfoWindow.getViewTreeObserver().removeGlobalOnLayoutListener(infoWindowLayoutListener);
-        markerInfoWindowHandler.removeCallbacks(positionUpdaterRunnable);
-        markerInfoWindowHandler = null;
-    }
-
-    public void initializeMarkerInfoWindow() {
-        markerInfoWindow = getView().findViewById(R.id.container_popup);
-        infoWindowLayoutListener = new InfoWindowLayoutListener();
-        markerInfoWindow.getViewTreeObserver().addOnGlobalLayoutListener(infoWindowLayoutListener);
-        overlayLayoutParams = (AbsoluteLayout.LayoutParams) markerInfoWindow.getLayoutParams();
-
-        markerText = (TextView) markerInfoWindow.findViewById(R.id.map_marker_text);
-        markerButton = (TextView) markerInfoWindow.findViewById(R.id.map_marker_button);
-
-        markerInfoWindowHandler = new Handler(Looper.getMainLooper());
-        positionUpdaterRunnable = new PositionUpdaterRunnable();
-        markerInfoWindowHandler.post(positionUpdaterRunnable);
-    }
-
-    @Override
-    public boolean onMarkerClick(final Marker marker) {
-        Projection projection = googleMap.getProjection();
-        trackedPosition = marker.getPosition();
-        Point trackedPoint = projection.toScreenLocation(trackedPosition);
-        trackedPoint.y -= popupYOffset / 2;
-        LatLng newCameraLocation = projection.fromScreenLocation(trackedPoint);
-        googleMap.animateCamera(CameraUpdateFactory.newLatLng(newCameraLocation));
-
-        markerText.setText(marker.getTitle());
-        markerButton.setOnClickListener(new TextView.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                markerInfoWindow.setVisibility(View.INVISIBLE);
-                new getDirectionAsync(marker.getPosition().latitude + "," + marker.getPosition().longitude).execute();
-            }
-        });
-
-        markerInfoWindow.setVisibility(View.VISIBLE);
-
-        return true;
-    }
-
-    @Override
-    public void onMapClick(LatLng latLng) {
-        markerInfoWindow.setVisibility(View.INVISIBLE);
-    }
-
-    @Override
     public void onMapReady(final GoogleMap map) {
-        this.googleMap = map;
+        googleMap = map;
 
         googleMap.setOnMyLocationChangeListener(new GoogleMap.OnMyLocationChangeListener() {
             @Override
             public void onMyLocationChange(Location location) {
                 lastKnownLocation = location;
 
-                Marker currentLocationMarker = googleMap.addMarker(new MarkerOptions()
-                        .position(new LatLng(location.getLatitude(), location.getLongitude()))
-                        .icon(BitmapDescriptorFactory.fromResource(R.drawable.map_current_location_marker))
-                        .title("were my luv at??"));
-
                 if (!cameraFocusedToMarker) {
                     googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
                             new LatLng(location.getLatitude(),
-                                    location.getLongitude()), 15));
+                                    location.getLongitude()), 17));
                 }
             }
         });
 
+        // Setting a custom info window adapter for the google map
+        googleMap.setInfoWindowAdapter(new GoogleMap.InfoWindowAdapter() {
+
+            // Use default InfoWindow frame
+            @Override
+            public View getInfoWindow(Marker arg0) {
+                return null;
+            }
+
+            // Defines the contents of the InfoWindow
+            @Override
+            public View getInfoContents(Marker marker) {
+
+                // Getting view from the layout file info_window layout
+                View v = getActivity().getLayoutInflater().inflate(R.layout.info_window, null);
+
+                // Getting the position from the marker
+                final LatLng latLng = marker.getPosition();
+
+                Button navigateButton = (Button) v.findViewById(R.id.navigate_button);
+                navigateButton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Log.d("clicked?", "clicked yo");
+                        new getDirectionAsync(latLng.latitude + "," + latLng.longitude).execute();
+                    }
+                });
+
+                return v;
+            }
+        });
+
+        googleMap.setIndoorEnabled(true);
         googleMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+
         googleMap.setMyLocationEnabled(true);
-        googleMap.setOnMapClickListener(this);
-        googleMap.setOnMarkerClickListener(this);
+        googleMap.setOnMapLongClickListener(this);
+        googleMap.setOnInfoWindowClickListener(this);
     }
 
     @Override
@@ -264,36 +240,11 @@ public class MapViewFragment extends Fragment implements OnMapReadyCallback,
         new searchAddressAsync(latLng.latitude + "," + latLng.longitude).execute();
     }
 
-    private class InfoWindowLayoutListener implements ViewTreeObserver.OnGlobalLayoutListener {
-        @Override
-        public void onGlobalLayout() {
-            popupXOffset = markerInfoWindow.getWidth() / 2;
-            popupYOffset = markerInfoWindow.getHeight();
-        }
-    }
+    @Override
+    public void onInfoWindowClick(Marker marker) {
+        LatLng latLng = marker.getPosition();
 
-    private class PositionUpdaterRunnable implements Runnable {
-        private int lastXPosition = Integer.MIN_VALUE;
-        private int lastYPosition = Integer.MIN_VALUE;
-        private int markerHeight = getResources().getDrawable(R.drawable.map_marker_pin).getIntrinsicHeight();
-
-        @Override
-        public void run() {
-            markerInfoWindowHandler.postDelayed(this, 16);
-
-            if (trackedPosition != null && markerInfoWindow.getVisibility() == View.VISIBLE) {
-                Point targetPosition = googleMap.getProjection().toScreenLocation(trackedPosition);
-
-                if (lastXPosition != targetPosition.x || lastYPosition != targetPosition.y) {
-                    overlayLayoutParams.x = targetPosition.x - popupXOffset;
-                    overlayLayoutParams.y = targetPosition.y - popupYOffset - markerHeight - 30;
-                    markerInfoWindow.setLayoutParams(overlayLayoutParams);
-
-                    lastXPosition = targetPosition.x;
-                    lastYPosition = targetPosition.y;
-                }
-            }
-        }
+        new getDirectionAsync(latLng.latitude + "," + latLng.longitude).execute();
     }
 
     private class searchAddressAsync extends AsyncTask<Void, Address, Address> {
@@ -307,7 +258,7 @@ public class MapViewFragment extends Fragment implements OnMapReadyCallback,
         protected Address doInBackground(Void... voids) {
 
             try {
-                return NavigationUtilities.getLatLongFromAddress(toSearch);
+                return NavigationUpdate.getLatLongFromAddress(toSearch);
             } catch (Exception e) {
                 this.cancel(true);
 
@@ -342,7 +293,7 @@ public class MapViewFragment extends Fragment implements OnMapReadyCallback,
 
             try {
                 String latlngStr = lastKnownLocation.getLatitude() + "," + lastKnownLocation.getLongitude();
-                return NavigationUtilities.getDirection(latlngStr, toSearch);
+                return NavigationUpdate.getDirection(latlngStr, toSearch);
             } catch (Exception e) {
                 this.cancel(true);
 
