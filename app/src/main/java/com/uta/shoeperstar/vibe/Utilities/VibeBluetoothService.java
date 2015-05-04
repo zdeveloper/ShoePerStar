@@ -149,51 +149,66 @@ public class VibeBluetoothService extends Service implements VibeShoeInterface{
                             byte[] inputBytes = new byte[bytesAvailable];
                             inputStream.read(inputBytes);
                             String msgReceived = new String(inputBytes);
-                            Log.d(TAG, "Received: " + msgReceived);
-                            String[] msgArray = msgReceived.split("_");
 
-                            if(msgArray[0] == "B") { // Battery Level
-                                int batteryReading = Integer.parseInt(msgArray[1]);
-
-                                //publish the results
-                                publishMessage(shoe, VibeShoeHandler.MSG_BATTERY, batteryReading);
-                                //update local values
-                                if(shoe == LEFT_SHOE)leftBatteryLevel = batteryReading;
-                                else rightBatteryLevel = batteryReading;
-
-                            } else if(msgArray[0] == "S"){ //Step Count
-
-                                int steps = Integer.parseInt(msgArray[1]);
-
-                                //publish the results
-                                publishMessage(shoe, VibeShoeHandler.MSG_STEPS, steps);
-                                //update local values
-                                if(shoe == LEFT_SHOE)leftSteps = steps;
-                                else rightSteps = steps;
+                            String[] commands = msgReceived.split("\\|"); //using | to separate commands
+                            //Log.d(TAG, "Received: " + msgReceived);
+                            for (int i=0; i<commands.length; i++){
 
 
-                            } else if(msgArray[0] == "P") { //Pulse Count
+                                //Log.d(TAG, "Received: " +commands[i]);
 
-                                if (msgArray[1] == "A") {     //actual pulse
+                                String[] msgArray = commands[i].split("_");
 
-                                    int pulses = Integer.parseInt(msgArray[2]);
+                                //error checking
+                                if(msgArray.length < 2) continue;
+
+                                if(msgArray[0].equals("B")) { // Battery Level
+                                    int batteryReading = Integer.parseInt(msgArray[1]);
+
                                     //publish the results
-                                    publishMessage(shoe, VibeShoeHandler.MSG_PULSE_ACTUAL, pulses);
+                                    publishMessage(shoe, VibeShoeHandler.MSG_BATTERY, batteryReading);
                                     //update local values
-                                    if (shoe == LEFT_SHOE) leftBpmActual = pulses;
-                                    else rightBpmActual = pulses;
+                                    if(shoe == LEFT_SHOE)leftBatteryLevel = batteryReading;
+                                    else rightBatteryLevel = batteryReading;
 
-                                } else if (msgArray[1] == "E") {  //estimated pulse
+                                } else if(msgArray[0].equals("S")){ //Step Count
 
-                                    int pulses = Integer.parseInt(msgArray[2]);
+                                    int steps = Integer.parseInt(msgArray[1]);
+
                                     //publish the results
-                                    publishMessage(shoe, VibeShoeHandler.MSG_PULSE_ESTIMATED, pulses);
+                                    publishMessage(shoe, VibeShoeHandler.MSG_STEPS, steps);
                                     //update local values
-                                    if (shoe == LEFT_SHOE) leftBpmEstimated = pulses;
-                                    else rightBpmEstimated = pulses;
+                                    if(shoe == LEFT_SHOE)leftSteps = steps;
+                                    else rightSteps = steps;
+
+
+                                } else if(msgArray[0].equals("P")) { //Pulse Count
+
+                                    //error checking
+                                    if(msgArray.length != 3) continue;
+
+                                    if (msgArray[1].equals("A")) {     //actual pulse
+
+                                        int pulses = Integer.parseInt(msgArray[2]);
+                                        //publish the results
+                                        publishMessage(shoe, VibeShoeHandler.MSG_PULSE_ACTUAL, pulses);
+                                        //update local values
+                                        if (shoe == LEFT_SHOE) leftBpmActual = pulses;
+                                        else rightBpmActual = pulses;
+
+                                    } else if (msgArray[1].equals("E")) {  //estimated pulse
+
+                                        int pulses = Integer.parseInt(msgArray[2]);
+                                        //publish the results
+                                        publishMessage(shoe, VibeShoeHandler.MSG_PULSE_ESTIMATED, pulses);
+                                        //update local values
+                                        if (shoe == LEFT_SHOE) leftBpmEstimated = pulses;
+                                        else rightBpmEstimated = pulses;
+                                    }
+                                } else { //here we send in the raw value
+                                    publishMessage(shoe, VibeShoeHandler.MSG_RAW, commands[i]);
                                 }
-                            } else { //here we send in the raw value
-                                publishMessage(shoe, VibeShoeHandler.MSG_RAW, msgReceived);
+
                             }
                         }
                         Thread.sleep(200);  // we sleep here to conserve battery
@@ -328,7 +343,7 @@ public class VibeBluetoothService extends Service implements VibeShoeInterface{
                     //send the command as many times needed
                     while (numberOfVibrations > 0){
                         sendData(shoe, msg);
-                        Thread.sleep(sleepDuration);
+                        Thread.sleep(sleepDuration*1000);
                         numberOfVibrations--;
                     }
                 } catch(Exception e){

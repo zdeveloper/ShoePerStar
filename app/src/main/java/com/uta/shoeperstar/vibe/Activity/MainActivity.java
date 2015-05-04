@@ -2,8 +2,10 @@ package com.uta.shoeperstar.vibe.Activity;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.os.Message;
 import android.os.Messenger;
 import android.support.v4.view.ViewPager;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
@@ -16,12 +18,14 @@ import com.uta.shoeperstar.vibe.Utilities.VibeShoes;
 
 public class MainActivity extends Activity {
 
+    private static final String TAG = "DEBUG";
+
     private TabIndicator tabs;
     private ViewPager pager;
     private TabsPagerAdapter adapter;
 
 
-    private VibeShoes vibeShoes;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,17 +41,6 @@ public class MainActivity extends Activity {
 
     }
 
-
-//    @Override
-//    protected void onResume() {
-//        super.onResume();
-//        //call on Bluetooth Utilities
-//        vibeShoes = VibeShoes.getInstance(this);
-//        //note that data will take some time to get to the shoe
-//        Messenger ms = new Messenger(new VibeHandler()); //making a messenger with a new instance of handler
-//
-//        vibeShoes.setRightShoeListener(ms.getBinder()); //registering handler
-//    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -72,35 +65,6 @@ public class MainActivity extends Activity {
     }
 
 
-    /**
-     * This is a call back class
-     */
-    class VibeHandler extends VibeShoeHandler {
-        @Override
-        public void onStepReceived(int steps) {
-
-        }
-
-        @Override
-        public void onBatteryLevelReceived(int batteryLevel) {
-
-        }
-
-        @Override
-        public void onPulseEstimatedReceived(int pulses) {
-
-        }
-
-        @Override
-        public void onPulseActualReceived(int pulses) {
-
-        }
-
-        @Override
-        public void onStringReceived(String message) {
-
-        }
-    }
 
 
 

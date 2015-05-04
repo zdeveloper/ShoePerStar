@@ -126,7 +126,7 @@
                 android:gravity="center"
                 android:inputType="number"
                 android:textSize="24sp"
-                android:text="253"
+                android:text="0"
                 android:textColor="@color/primary_text" />
 
         </LinearLayout>
@@ -167,14 +167,14 @@
         android:padding="20dp">
 
         <com.material.widget.PaperButton
-            android:id="@+id/startPulseButton"
+            android:id="@+id/sendVibrationButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
             widget:paper_color="@color/primary_light"
             widget:paper_shadow_color="@color/primary"
             widget:paper_shadow_radius="10"
-            widget:paper_text="GET PULSE"
+            widget:paper_text="Send Vibration"
             widget:paper_text_color="@color/primary_dark" />
 
 

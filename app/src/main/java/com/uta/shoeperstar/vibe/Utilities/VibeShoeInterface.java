@@ -62,14 +62,14 @@ public interface VibeShoeInterface {
      * This is pushing data as opposed to pulling data with the get interfaces
      * @param binder this is the binder for the Messenger, ex. messenger.getBinder()
      */
-    void setRightShoeListener(IBinder binder);
+    void setRightShoeListener(final IBinder binder);
 
     /**
      * This is used for asynchronous callback for when ever we get data from the shoe.
      * This is pushing data as opposed to pulling data with the get interfaces
      * @param binder this is the binder for the Messenger, ex. messenger.getBinder()
      */
-    void setLeftShoeListener(IBinder binder);
+    void setLeftShoeListener(final IBinder binder);
 
 
 }

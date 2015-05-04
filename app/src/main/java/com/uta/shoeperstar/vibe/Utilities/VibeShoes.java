@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.IBinder;
+import android.os.Messenger;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -126,16 +127,52 @@ public class VibeShoes implements VibeShoeInterface{
     }
 
     @Override
-    public void setRightShoeListener(IBinder binder) {
-        if(vibeBluetoothService != null){
-            vibeBluetoothService.setRightShoeListener(binder);
-        }
+    public void setRightShoeListener(final IBinder binder) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while(vibeBluetoothService == null);    //block until the service is bound
+
+                vibeBluetoothService.setRightShoeListener(binder);
+            }
+        }).start();
+    }
+    /*** This sets up the handler for the left vibe shoe ***/
+    public void setRightShoeListener(final VibeShoeHandler handler) {
+        final Messenger ms = new Messenger(handler); //making a messenger with a new instance of handler
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while(vibeBluetoothService == null);    //block until the service is bound
+
+                vibeBluetoothService.setRightShoeListener(ms.getBinder());
+            }
+        }).start();
     }
 
     @Override
-    public void setLeftShoeListener(IBinder binder) {
-        if(vibeBluetoothService != null){
-            vibeBluetoothService.setLeftShoeListener(binder);
-        }
+    public void setLeftShoeListener(final IBinder binder) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while(vibeBluetoothService == null);    //block until the service is bound
+
+                vibeBluetoothService.setLeftShoeListener(binder);
+            }
+        }).start();
+    }
+
+    /*** This sets up the handler for the left vibe shoe ***/
+    public void setLeftShoeListener(final VibeShoeHandler handler) {
+        final Messenger ms = new Messenger(handler); //making a messenger with a new instance of handler
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while(vibeBluetoothService == null);    //block until the service is bound
+
+                vibeBluetoothService.setLeftShoeListener(ms.getBinder());
+            }
+        }).start();
     }
 }
