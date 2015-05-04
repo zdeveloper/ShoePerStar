@@ -50,11 +50,11 @@
 
 
     <PreferenceCategory
-        android:title="System Information">
+        android:title="About">
+        <Preference
+            android:title="Vibe Shoes"
+            android:summary="By team Shoe-Per-Star"/>
     </PreferenceCategory>
 
-    <PreferenceCategory
-        android:title="About">
-    </PreferenceCategory>
 
 </PreferenceScreen>

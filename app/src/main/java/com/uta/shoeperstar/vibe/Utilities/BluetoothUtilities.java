@@ -29,6 +29,7 @@ import java.util.TimerTask;
 /**
  * Created by Zedd on 3/20/2015.
  */
+@Deprecated
 public class BluetoothUtilities {
 
     private final static int REQUEST_ENABLE_BT = 1;

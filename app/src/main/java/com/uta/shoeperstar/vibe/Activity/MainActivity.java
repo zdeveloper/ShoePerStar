@@ -1,47 +1,53 @@
 package com.uta.shoeperstar.vibe.Activity;
 
-import android.support.v4.view.ViewPager;
-import android.support.v7.app.ActionBarActivity;
+import android.app.Activity;
 import android.os.Bundle;
-import android.util.TypedValue;
+import android.os.Messenger;
+import android.support.v4.view.ViewPager;
 import android.view.Menu;
 import android.view.MenuItem;
 
-import com.astuetz.PagerSlidingTabStrip;
+import com.material.widget.TabIndicator;
 import com.uta.shoeperstar.vibe.Adapter.TabsPagerAdapter;
 import com.uta.shoeperstar.vibe.R;
-import com.uta.shoeperstar.vibe.Utilities.BluetoothUtilities;
+import com.uta.shoeperstar.vibe.Utilities.VibeShoeHandler;
+import com.uta.shoeperstar.vibe.Utilities.VibeShoes;
 
 
-public class MainActivity extends ActionBarActivity {
+public class MainActivity extends Activity {
 
-    private PagerSlidingTabStrip tabs;
+    private TabIndicator tabs;
     private ViewPager pager;
     private TabsPagerAdapter adapter;
 
+
+    private VibeShoes vibeShoes;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        tabs = (PagerSlidingTabStrip) findViewById(R.id.tabs);
+        tabs = (TabIndicator) findViewById(R.id.tabs);
         pager = (ViewPager) findViewById(R.id.pager);
         adapter = new TabsPagerAdapter(getFragmentManager());
 
         pager.setAdapter(adapter);
-
-//        final int pageMargin = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 3, getResources().getDisplayMetrics());
-//        pager.setPageMargin(pageMargin);
-
         tabs.setViewPager(pager);
-
-
-        //call on Bluetooth Utilities
-        new BluetoothUtilities(this);
 
     }
 
+
+//    @Override
+//    protected void onResume() {
+//        super.onResume();
+//        //call on Bluetooth Utilities
+//        vibeShoes = VibeShoes.getInstance(this);
+//        //note that data will take some time to get to the shoe
+//        Messenger ms = new Messenger(new VibeHandler()); //making a messenger with a new instance of handler
+//
+//        vibeShoes.setRightShoeListener(ms.getBinder()); //registering handler
+//    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -64,6 +70,39 @@ public class MainActivity extends ActionBarActivity {
 
         return super.onOptionsItemSelected(item);
     }
+
+
+    /**
+     * This is a call back class
+     */
+    class VibeHandler extends VibeShoeHandler {
+        @Override
+        public void onStepReceived(int steps) {
+
+        }
+
+        @Override
+        public void onBatteryLevelReceived(int batteryLevel) {
+
+        }
+
+        @Override
+        public void onPulseEstimatedReceived(int pulses) {
+
+        }
+
+        @Override
+        public void onPulseActualReceived(int pulses) {
+
+        }
+
+        @Override
+        public void onStringReceived(String message) {
+
+        }
+    }
+
+
 
 
 
