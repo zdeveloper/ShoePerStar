@@ -4,7 +4,6 @@ package com.uta.shoeperstar.vibe.Fragment;
 import android.app.Fragment;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Messenger;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,11 +14,8 @@ import android.widget.TextView;
 import com.material.widget.PaperButton;
 import com.skyfishjy.library.RippleBackground;
 import com.uta.shoeperstar.vibe.R;
-import com.uta.shoeperstar.vibe.Utilities.VibeShoeHandler;
-import com.uta.shoeperstar.vibe.Utilities.VibeShoes;
-
-import java.util.Timer;
-import java.util.TimerTask;
+import com.uta.shoeperstar.vibe.Utilities.VibeShoes.VibeShoeHandler;
+import com.uta.shoeperstar.vibe.Utilities.VibeShoes.VibeShoes;
 
 
 public class DashboardFragment extends Fragment {

@@ -2,18 +2,13 @@ package com.uta.shoeperstar.vibe.Activity;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.os.Message;
-import android.os.Messenger;
 import android.support.v4.view.ViewPager;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
 import com.material.widget.TabIndicator;
 import com.uta.shoeperstar.vibe.Adapter.TabsPagerAdapter;
 import com.uta.shoeperstar.vibe.R;
-import com.uta.shoeperstar.vibe.Utilities.VibeShoeHandler;
-import com.uta.shoeperstar.vibe.Utilities.VibeShoes;
 
 
 public class MainActivity extends Activity {

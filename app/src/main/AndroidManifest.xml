@@ -48,6 +48,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
         <activity
             android:name=".Activity.MainActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
@@ -59,10 +60,13 @@
             android:enabled="true"
             android:exported="true" >
         </service>
+
         <service
-            android:name=".Utilities.VibeBluetoothService"
+            android:name=".Utilities.VibeShoes.VibeBluetoothService"
             android:enabled="true"
-            android:exported="true" >
+            android:exported="true"></service>
+
+        <service android:name=".Utilities.Navigation.NavigationUpdateService">
         </service>
     </application>
 

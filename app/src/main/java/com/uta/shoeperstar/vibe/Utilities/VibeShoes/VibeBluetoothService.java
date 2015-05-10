@@ -1,4 +1,4 @@
-package com.uta.shoeperstar.vibe.Utilities;
+package com.uta.shoeperstar.vibe.Utilities.VibeShoes;
 
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
@@ -28,35 +28,27 @@ public class VibeBluetoothService extends Service implements VibeShoeInterface{
 
     public static final int RIGHT_SHOE = 0;
     public static final int LEFT_SHOE = 1;
-
-    /** Messenger for communicating with the activity. */
+    private static final UUID MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
+    private static String rightAddress = "20:13:09:29:14:09";
+    private static String leftAddress = "20:13:09:29:14:09";
+    private final Binder serviceBinder = new BluetoothServiceBinder();
+    /**
+     * Messenger for communicating with the activity.
+     */
     private Messenger rightShoeListener = null;
     private Messenger leftShoeListener = null;
-
     //The following are data containers
-    private int leftSteps=0, rightSteps=0;
-    private int rightBpmEstimated=0, rightBpmActual=0;
-    private int leftBpmEstimated=0, leftBpmActual=0;
-    private int leftBatteryLevel=0, rightBatteryLevel=0;
-
-
-    private static final UUID MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
-
-    private final Binder serviceBinder = new BluetoothServiceBinder();
-
-    private BluetoothAdapter btAdapter = null;
+    private int leftSteps = 0, rightSteps = 0;
+    private int rightBpmEstimated = 0, rightBpmActual = 0;
+    private int leftBpmEstimated = 0, leftBpmActual = 0;
 
     //private BluetoothSocket rightBtSocket = null;
     //private BluetoothSocket leftBtSocket = null;
-
+    private int leftBatteryLevel = 0, rightBatteryLevel = 0;
+    private BluetoothAdapter btAdapter = null;
     private OutputStream rightOutStream = null;
     private OutputStream leftOutStream = null;
-
     private String TAG = "DEBUG";
-
-
-    private static String rightAddress = "20:13:09:29:14:09";
-    private static String leftAddress = "20:13:09:29:14:09";
 
     public VibeBluetoothService() {}
 
@@ -64,7 +56,7 @@ public class VibeBluetoothService extends Service implements VibeShoeInterface{
     private BluetoothSocket createBluetoothSocket(BluetoothDevice device) throws IOException {
         if (Build.VERSION.SDK_INT >= 10) {
             try {
-                final Method m = device.getClass().getMethod("createInsecureRfcommSocketToServiceRecord", new Class[]{UUID.class});
+                final Method m = device.getClass().getMethod("createInsecureRfcommSocketToServiceRecord", UUID.class);
                 return (BluetoothSocket) m.invoke(device, MY_UUID);
             } catch (Exception e) {
                 Log.e(TAG, "Could not create Insecure RFComm Connection", e);
@@ -212,8 +204,8 @@ public class VibeBluetoothService extends Service implements VibeShoeInterface{
                             }
                         }
                         Thread.sleep(200);  // we sleep here to conserve battery
-                    } catch (Exception e){
-                        Log.e(TAG, "ERROR in receiving data, shoe code:" + shoe + "\nError: " + e.toString());
+                    } catch (Exception e) {
+//                        Log.e(TAG, "ERROR in receiving data, shoe code:" + shoe + "\nError: " + e.toString());
                     }
                 }
             }

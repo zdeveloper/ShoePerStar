@@ -1,4 +1,4 @@
-package com.uta.shoeperstar.vibe.Utilities;
+package com.uta.shoeperstar.vibe.Utilities.VibeShoes;
 
 import android.os.IBinder;
 
