@@ -279,7 +279,6 @@ public class MapViewFragment extends Fragment implements OnMapReadyCallback,
                 navigateButton.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        Log.d("onclickinfowindow", "getting route");
                         searchNavigationRoute(latLng.latitude + ", " + latLng.longitude);
                     }
                 });
@@ -357,7 +356,6 @@ public class MapViewFragment extends Fragment implements OnMapReadyCallback,
 
         @Override
         public void onRouteReceived(NavigationRoute route) {
-            Log.d("onRouteReceived", "Received route");
             drawNavigationRoute(route);
         }
 

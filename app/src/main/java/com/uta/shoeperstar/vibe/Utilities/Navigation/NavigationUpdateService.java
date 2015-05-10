@@ -19,6 +19,8 @@ import android.os.Process;
 import android.os.RemoteException;
 import android.util.Log;
 
+import com.google.android.gms.maps.model.LatLng;
+
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -109,7 +111,11 @@ public class NavigationUpdateService extends Service implements LocationListener
 
     @Override
     public void onLocationChanged(Location location) {
-        // TODO update current step
+        LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
+        currentStep = route.getCurrentStep(latLng);
+        Log.d("Navigating", "Distance until turn: " + currentStep.distanceToTurn(latLng));
+
+        // TODO Display next step
     }
 
     @Override
@@ -208,7 +214,6 @@ public class NavigationUpdateService extends Service implements LocationListener
             try {
                 route = new NavigationRoute(result);
 
-                Log.d("onPostExecute", "Received route " + route.getPolyline());
                 sendMessage(NavigationUpdateHandler.ROUTE_RECEIVED, route);
 
             } catch (Exception e) {

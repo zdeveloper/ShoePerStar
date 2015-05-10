@@ -1,5 +1,7 @@
 package com.uta.shoeperstar.vibe.Utilities.Navigation;
 
+import android.location.Location;
+
 import com.google.android.gms.maps.model.LatLng;
 import com.google.maps.android.PolyUtil;
 import com.uta.shoeperstar.vibe.Fragment.MapViewFragment;
@@ -18,7 +20,7 @@ public class NavigationStep {
     private float duration;
     private LatLng start, end;
     private String instruction;
-    private String polyline;
+    private ArrayList<LatLng> path;
     private String maneuver;
 
     public NavigationStep(JSONObject step) throws JSONException {
@@ -33,7 +35,7 @@ public class NavigationStep {
 
         this.instruction = step.getString("html_instructions");
 
-        this.polyline = ((JSONObject) step.get("polyline")).getString("points");
+        this.path = MapViewFragment.decodePolyline(((JSONObject) step.get("polyline")).getString("points"));
 
         // Step may not always have maneuver
         try {
@@ -67,9 +69,21 @@ public class NavigationStep {
         return maneuver;
     }
 
+    public float distanceToTurn(LatLng point) {
+        float[] results = new float[1];
+        Location.distanceBetween(point.latitude, point.longitude, end.latitude, end.longitude, results);
+
+        return results[0];
+    }
+
+    public float[] getNextPoint(LatLng point) {
+        float result[] = new float[3];
+
+        return result;
+    }
+
     public boolean isOnRoute(LatLng point) {
-        ArrayList<LatLng> polylinePoints = MapViewFragment.decodePolyline(polyline);
-        return PolyUtil.isLocationOnPath(point, polylinePoints, true);
+        return PolyUtil.isLocationOnPath(point, path, true);
     }
 
 }
