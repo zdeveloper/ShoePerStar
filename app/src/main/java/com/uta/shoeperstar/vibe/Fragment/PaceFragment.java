@@ -152,25 +152,25 @@ public class PaceFragment extends Fragment {
 //        });
     }
 
-    private long setCountdownTime(int min, int sec){
-        //converts minutes to seconds to milliseconds
-        // for input to PaceCountDownTimer
-        long cdtMilli= TimeUnit.MINUTES.toMillis(min) + TimeUnit.SECONDS.toMillis(sec);
-        return cdtMilli;
-    }
-
-    private boolean checkPace(float pace, double distance, long time){
-        double currentPace = distance/time;
-        Log.d("current Pace", "Current Pace: " + currentPace);
-        Log.d("OPace", "Original Pace: " + pace);
-        if (currentPace > pace) {
-            Log.d("Behind Pace", "Behind Pace");
-            return true;
-        }
-        else{
-            Log.d("On Pace", "On Pace");
-            return false;
-        }
-    }
+//    private long setCountdownTime(int min, int sec){
+//        //converts minutes to seconds to milliseconds
+//        // for input to PaceCountDownTimer
+//        long cdtMilli= TimeUnit.MINUTES.toMillis(min) + TimeUnit.SECONDS.toMillis(sec);
+//        return cdtMilli;
+//    }
+//
+//    private boolean checkPace(float pace, double distance, long time){
+//        double currentPace = distance/time;
+//        Log.d("current Pace", "Current Pace: " + currentPace);
+//        Log.d("OPace", "Original Pace: " + pace);
+//        if (currentPace > pace) {
+//            Log.d("Behind Pace", "Behind Pace");
+//            return true;
+//        }
+//        else{
+//            Log.d("On Pace", "On Pace");
+//            return false;
+//        }
+//    }
 
 }

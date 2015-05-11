@@ -30,7 +30,7 @@
             android:weightSum="1"
             android:id="@+id/paceLayout1"
             android:layout_gravity="center_horizontal"
-            android:visibility="visible">
+            android:visibility="invisible">
 
 
                 <TextView
@@ -61,7 +61,7 @@
                         android:layout_weight=".70">
 
                         </LinearLayout>
-                    <Button
+                    <Button style="@color/primary-dark"
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
                         android:layout_weight=".30"
@@ -79,7 +79,7 @@
             android:layout_margin="15dp"
             android:weightSum="1"
             android:id="@+id/paceLayout2"
-            android:visibility="invisible"
+            android:visibility="visible"
             >
 
 

@@ -1,5 +1,6 @@
 package com.uta.shoeperstar.vibe.Fragment;
 
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.app.Fragment;
 import android.view.LayoutInflater;
@@ -12,8 +13,14 @@ import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
 import com.uta.shoeperstar.vibe.R;
+import com.uta.shoeperstar.vibe.Utilities.Data;
+import com.uta.shoeperstar.vibe.Utilities.Database;
+
+import android.util.Log;
 
 import java.util.ArrayList;
+
+
 
 
 public class DataVisualizationFragment extends Fragment {
@@ -21,7 +28,9 @@ public class DataVisualizationFragment extends Fragment {
     ImageButton heartBeatButton;
     LineChart stepChart;
     LineChart pulseChart;
+    Database db;
 
+//    Database db = new Database(getContext());
     public DataVisualizationFragment() {
         // Required empty public constructor
     }
@@ -30,7 +39,8 @@ public class DataVisualizationFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        //do stuff before the ui is loaded
+        db = new Database(getActivity(), null, null, 1);
+        /* do stuff before the ui is loaded */
     }
 
 
@@ -89,6 +99,24 @@ public class DataVisualizationFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 // stuff to change to HeartBeat fragment
+
+                Data data1 = new Data(60, 4, 5);
+                Data data2 = new Data(67, 5, 6);
+                Data data3 = new Data(68, 5, 2);
+                Data data4 = new Data(78, 4, 7);
+                Data data5 = new Data(65, 8, 2);
+                Data data6 = new Data(63, 7, 9);
+                db.addPulse(data1);
+                db.addPulse(data2);
+                db.addPulse(data3);
+                db.addPulse(data4);
+                db.addPulse(data5);
+                db.addPulse(data6);
+                ArrayList<Data> results = new ArrayList<Data>();
+                results = db.getPulse();
+                for(int i = 0; i < results.size(); i ++) {
+                    Log.d("Reuslts", "" + results.get(i).getData());
+                }
                 stepChart.setVisibility(View.GONE);
 //                pulseChart.invalidate();
                 pulseChart.setVisibility(View.VISIBLE);
