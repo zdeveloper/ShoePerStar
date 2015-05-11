@@ -1,10 +1,12 @@
 package com.uta.shoeperstar.vibe.Utilities.Navigation;
 
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.location.Address;
 import android.location.Location;
 import android.location.LocationListener;
+import android.location.LocationManager;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Binder;
@@ -35,13 +37,15 @@ import java.util.Locale;
 
 public class NavigationUpdateService extends Service implements LocationListener {
 
+    public static float NEARING_TURN_DISTANCE = 5;
+
     private final IBinder mBinder = new NavigationUpdateBinder();
     private Looper mServiceLooper;
-
     private Messenger mapViewMessenger;
 
     private NavigationRoute route;
     private NavigationStep currentStep;
+    private LocationManager locationManager;
 
     public NavigationUpdateService() {
     }
@@ -109,13 +113,45 @@ public class NavigationUpdateService extends Service implements LocationListener
         return stringBuilder.toString();
     }
 
+    /**
+     * This function notify the MapViewListener of navigational changes by sending message
+     *
+     * @param location
+     */
     @Override
     public void onLocationChanged(Location location) {
-        LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
-        currentStep = route.getCurrentStep(latLng);
-        Log.d("Navigating", "Distance until turn: " + currentStep.distanceToTurn(latLng));
+        //error handling
+        if (route == null || currentStep == null) {
+            return;
+        }
 
-        // TODO Display next step
+        LatLng currentLocation = new LatLng(location.getLatitude(), location.getLongitude());
+
+        try {
+            // Check for change of turn
+            NavigationStep localCurrentStep = route.getCurrentStep(currentLocation);
+            if (localCurrentStep != null && !currentStep.equals(localCurrentStep)) {
+                currentStep = localCurrentStep;
+                sendMessage(NavigationUpdateHandler.NEXT_TURN, localCurrentStep);
+            }
+
+            // check for nearing end of turn
+            float distanceUntilTurn = currentStep.distanceUntilTurn(currentLocation);
+            NavigationStep nextStep;
+//            if (distanceUntilTurn < NEARING_TURN_DISTANCE) {
+            if (true) {
+                nextStep = route.getNextStep(currentStep);
+                sendMessage(NavigationUpdateHandler.NEARING_END_OF_TURN, nextStep);
+            }
+
+            sendMessage(NavigationUpdateHandler.MESSAGE, "Distance until turn: " + distanceUntilTurn + ", " + nextStep.getManeuver().toString());
+
+            // Send the next point along the route
+            sendMessage(NavigationUpdateHandler.NEXT_POINT, currentStep.getNextPoint(currentLocation));
+
+        } catch (Exception e) {
+            Log.d("ERR", "OnLocationChanged", e);
+        }
     }
 
     @Override
@@ -151,10 +187,9 @@ public class NavigationUpdateService extends Service implements LocationListener
      *
      * @param handler user implemented handler {@link NavigationUpdateHandler}
      */
-    public void registerNavigationUpdateHandler(final Handler handler) {
-        final Messenger msg = new Messenger(handler);
+    public void registerNavigationUpdateHandler(Handler handler) {
+        Messenger msg = new Messenger(handler);
         mapViewMessenger = new Messenger(msg.getBinder());
-
     }
 
     public NavigationRoute getRoute() {
@@ -176,6 +211,18 @@ public class NavigationUpdateService extends Service implements LocationListener
 
         Message msg = Message.obtain(null, what, message);
         mapViewMessenger.send(msg);
+    }
+
+    public void startNavigation() {
+        if (route == null) {
+            return;
+        }
+
+        // initialize location manager
+        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 500, 0, this);
+
+        currentStep = route.getFirstStep();
     }
 
     public class NavigationUpdateBinder extends Binder {
@@ -213,9 +260,7 @@ public class NavigationUpdateService extends Service implements LocationListener
 
             try {
                 route = new NavigationRoute(result);
-
                 sendMessage(NavigationUpdateHandler.ROUTE_RECEIVED, route);
-
             } catch (Exception e) {
                 Log.d("err", "Problem with getting route json object", e);
             }
@@ -223,4 +268,5 @@ public class NavigationUpdateService extends Service implements LocationListener
     }
 
 }
+
 

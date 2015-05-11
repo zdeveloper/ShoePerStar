@@ -60,6 +60,10 @@ public class NavigationRoute {
         return null;
     }
 
+    public NavigationStep getFirstStep() {
+        return steps.get(0);
+    }
+
     public NavigationStep getNextStep(NavigationStep currentStep) {
         if (steps == null) {
             return null;
@@ -85,4 +89,6 @@ public class NavigationRoute {
     public String getPolyline() {
         return polyline;
     }
+
+
 }

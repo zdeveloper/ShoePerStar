@@ -31,6 +31,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
@@ -357,6 +358,41 @@ public class MapViewFragment extends Fragment implements OnMapReadyCallback,
         @Override
         public void onRouteReceived(NavigationRoute route) {
             drawNavigationRoute(route);
+            navigationService.startNavigation();
+        }
+
+        @Override
+        public void onNewTurn(NavigationStep turn) {
+
+        }
+
+        @Override
+        public void onEndOfTurn(NavigationStep turn) {
+
+        }
+
+        @Override
+        public void onRouteRecalculate() {
+
+        }
+
+        @Override
+        public void onNextPoint(LatLng toPoint) {
+            float distance[] = new float[2];
+            Location.distanceBetween(lastKnownLocation.getLatitude(), lastKnownLocation.getLongitude(),
+                    toPoint.latitude, toPoint.longitude, distance);
+
+            CameraPosition cameraPosition = new CameraPosition.Builder()
+                    .target(                    // Sets the center of the map to Mountain View
+                            new LatLng(lastKnownLocation.getLatitude(),
+                                    lastKnownLocation.getLongitude()))
+                    .zoom(20)                   // Sets the zoom
+                    .bearing(distance[1])       // Sets the orientation of the camera to east
+                    .tilt(30)                   // Sets the tilt of the camera to 30 degrees
+                    .build();                   // Creates a CameraPosition from the builder
+
+            googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+
         }
 
         @Override
@@ -365,13 +401,8 @@ public class MapViewFragment extends Fragment implements OnMapReadyCallback,
         }
 
         @Override
-        public void onNearingTurn(NavigationStep step) {
-
-        }
-
-        @Override
-        public void onRouteRecalculate() {
-
+        public void onStringReceived(String message) {
+            Toast.makeText(getActivity(), message, Toast.LENGTH_SHORT).show();
         }
     }
 
