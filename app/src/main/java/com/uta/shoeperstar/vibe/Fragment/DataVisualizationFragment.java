@@ -181,8 +181,18 @@ public class DataVisualizationFragment extends Fragment implements AdapterView.O
     private LineData getData(String chooseDB, String timePeriod) {  // DB - Step , Pulse  timePeriod - minute, hour, day
         String choice = chooseDB;
         ArrayList<Data> results = new ArrayList<>();
+        ArrayList<Data> temp = new ArrayList<>();
         if(choice == "Step"){
-            results = db.getStepCount(timePeriod);
+            temp = db.getStepCount(timePeriod);
+            int prev = 0;
+            int current, value;
+            for(int i =0; i < temp.size(); i++){
+                current = temp.get(i).getData();
+                Log.d("Current Value", "" + current);
+                value = current - prev;
+                results.add(new Data(value));
+                prev = current;
+            }
         }
         else if(choice == "Pulse"){
             results = db.getPulse(timePeriod);
