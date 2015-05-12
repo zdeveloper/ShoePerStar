@@ -2,6 +2,7 @@ package com.uta.shoeperstar.vibe.Utilities;
 
 import android.os.Handler;
 import android.os.Message;
+import android.util.Log;
 
 /** Extend this class to get shoe status asynchronously
  * Created by Zedd on 5/4/2015.
