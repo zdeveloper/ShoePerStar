@@ -19,12 +19,20 @@
             android:layout_gravity="right"
             android:background="@drawable/ic_heart_light" />
 
+        <Spinner
+            android:layout_width="111dp"
+            android:layout_height="wrap_content"
+            android:id="@+id/timeSpinner"
+            android:layout_gravity="center"
+            ></Spinner>
         <ImageButton
             android:id="@+id/stepCountButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="left"
             android:background='@drawable/ic_active_light' />
+
+
 
     </FrameLayout>
 

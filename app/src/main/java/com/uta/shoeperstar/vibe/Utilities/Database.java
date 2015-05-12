@@ -50,17 +50,20 @@ public class Database extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-
-
+//        String DROP_STEPCOUNT_TABLE = "DROP TABLE " + DATABASE_NAME+"."+TABLE_STEPCOUNT;
+//        String DROP_PULSE_TABLE = "DROP TABLE " + TABLE_PULSE;
+//
+//        db.execSQL(DROP_STEPCOUNT_TABLE);
+//        db.execSQL(DROP_PULSE_TABLE);
         String CREATE_STEPCOUNT_TABLE = "CREATE TABLE " +
                 TABLE_STEPCOUNT + "("
-                + SC_COLUMN_STEPCOUNT + " INTEGER," + "Timestamp DATETIME DEFAULT CURRENT_TIMESTAMP)";
+                + SC_COLUMN_STEPCOUNT + " INTEGER," + "Timestamp DATETIME DEFAULT (datetime('now', 'localtime')))";
         db.execSQL(CREATE_STEPCOUNT_TABLE);
 
 
         String CREATE_PULSE_TABLE = "CREATE TABLE " +
                 TABLE_PULSE + "("
-                + P_COLUMN_PULSE + " INTEGER," + "Timestamp DATETIME DEFAULT CURRENT_TIMESTAMP)";
+                + P_COLUMN_PULSE + " INTEGER," + "Timestamp DATETIME DEFAULT (datetime('now', 'localtime')))";
         db.execSQL(CREATE_PULSE_TABLE);
 
     }
@@ -82,7 +85,7 @@ public class Database extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getWritableDatabase();
         db.insert(TABLE_STEPCOUNT, null, values);
         db.close();
-        Log.d(null, "shtuff Created");
+//        Log.d(null, "stuff Created");
     }
 
 
@@ -103,47 +106,65 @@ public class Database extends SQLiteOpenHelper {
     }
 
 
-    public ArrayList<Data> getStepCount() {
+    public ArrayList<Data> getStepCount(String timePeriod) {
+        String query = "";
+//        Log.d("timePeriod:", timePeriod);
+        switch(timePeriod){
+            case "day":
+                Log.d("in Day:", " Hello!");
+                query = "SELECT  MAX(steps) as Steps, strftime('%m/%d', Timestamp) as time FROM "+ TABLE_STEPCOUNT+" GROUP BY strftime('%j', Timestamp)" ;
+                break;
+            case "hour":
+                query = "SELECT  MAX(steps) as Steps, strftime('%H', Timestamp) as hour FROM "+ TABLE_STEPCOUNT +" GROUP BY strftime('%j-%H', Timestamp)" ;
+                break;
+            case "minute":
+                query = "SELECT  MAX(steps) as Steps, strftime('%H:%M', Timestamp) as hour FROM "+ TABLE_STEPCOUNT +" GROUP BY strftime('%j-%H-%M', Timestamp)" ;
+                break;
+        }
 
-        int i = 0;
-        ArrayList<Data> stepRecord = new ArrayList<>();
+        ArrayList<Data> stepData = new ArrayList<>();
 
-        String query = "SELECT * FROM " + TABLE_STEPCOUNT;
+
         SQLiteDatabase db = this.getWritableDatabase();
 
         Cursor cursor = db.rawQuery(query, null);
-
-
         cursor.moveToFirst();
-
+        int value=0;
         do {
             Data data = new Data();
-            data.setData(Integer.parseInt(cursor.getString(0)));
-//            data.setDate(Integer.parseInt(cursor.getString(1)));
-//            data.setTime(Integer.parseInt(cursor.getString(2)));
-            stepRecord.add(data);
-
+            value = Integer.parseInt(cursor.getString(0));
+//            Log.d("value:",""+value);
+            data.setData(value);
+//            Log.d("Time String", "" + cursor.getString(1));
+            data.setTime("" + cursor.getString(1));
+            stepData.add(data);
 
         } while (cursor.moveToNext());
 
-
         cursor.close();
         db.close();
+        return stepData;
 
-        for (i = 0; i < stepRecord.size(); i++) {
-            System.out.println("data: " + stepRecord.get(i).data);
-        }
-        return stepRecord;
     }
 
 
-    public ArrayList<Data> getPulse() {
-
+    public ArrayList<Data> getPulse(String timePeriod) {
+        String query = "";
+        switch(timePeriod){
+            case "day":
+                query = "SELECT  AVG(pulse) as pulseAvg, strftime('%m-%d', Timestamp) as hour FROM "+ TABLE_PULSE +" GROUP BY strftime('%j', Timestamp)" ;
+                break;
+            case "hour":
+                query = "SELECT  AVG(pulse) as pulseAvg, strftime('%H', Timestamp) as hour FROM "+ TABLE_PULSE +" GROUP BY strftime('%j-%H', Timestamp)" ;
+                break;
+            case "minute":
+                query = "SELECT  AVG(pulse) as pulseAvg, strftime('%H:%M', Timestamp) as hour FROM "+ TABLE_PULSE +" GROUP BY strftime('%j-%H-%M', Timestamp)" ;
+                break;
+        }
 
         ArrayList<Data> pulseRecord = new ArrayList<>();
 
 
-        String query = "Select * FROM " + TABLE_PULSE;
         SQLiteDatabase db = this.getWritableDatabase();
 
         Cursor cursor = db.rawQuery(query, null);
@@ -151,9 +172,14 @@ public class Database extends SQLiteOpenHelper {
 
         do {
             Data data = new Data();
-            data.setData(Integer.parseInt(cursor.getString(0)));
-//            data.setDate(Integer.parseInt(cursor.getString(1)));
-//            data.setTime(Integer.parseInt(cursor.getString(2)));
+            Float value = Float.parseFloat(cursor.getString(0));
+            int avg;
+            avg = Math.round(value);
+
+            data.setData(avg);
+            data.setTime(cursor.getString(1));
+
+//            Log.d("Time String", "" + cursor.getString(1));
             pulseRecord.add(data);
 
         } while (cursor.moveToNext());

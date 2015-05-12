@@ -6,26 +6,27 @@ package com.uta.shoeperstar.vibe.Utilities;
 public class Data
 {
 
-    public int startT;
-    public int startD;
+//    public int startT;
+//    public int startD;
     public int data;
+    public String timeStamp;
 
     public Data() {
     }
 
-    public Data(int Data, int start, int startDate)
+    public Data(int Data)
     {
-        this.startT=start;
-        this.startD=startDate;
+//        this.startT=start;
+//        this.startD=startDate;
         this.data=Data;
     }
 
-    public int getTime() {
-        return startT;
+    public String getTime() {
+        return timeStamp;
     }
 
-    public void setTime(int startTime) {
-        this.startT = startTime;
+    public void setTime(String ts) {
+        this.timeStamp = ts;
     }
 
     public int getData() {
@@ -36,13 +37,13 @@ public class Data
         this.data = data;
     }
 
-    public int getDate(){
-        return startD;
-    }
-
-    public void setDate(int setDate) {
-        this.startD = setDate;
-    }
+//    public int getDate(){
+//        return startD;
+//    }
+//
+//    public void setDate(int setDate) {
+//        this.startD = setDate;
+//    }
 
 
 }

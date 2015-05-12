@@ -61,7 +61,7 @@
                         android:layout_weight=".70">
 
                         </LinearLayout>
-                    <Button style="@color/primary-dark"
+                    <Button style="@color/primary"
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
                         android:layout_weight=".30"
