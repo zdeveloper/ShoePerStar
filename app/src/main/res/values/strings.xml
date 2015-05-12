@@ -16,7 +16,11 @@
 
     <string name="title_activity_exercising">Exercising</string>
 
-
+    <string-array name="timeArray">
+        <item>minute</item>
+        <item>hour</item>
+        <item>day</item>
+    </string-array>
     <!-- Zedd's key AIzaSyDJmQDFzVDgIZoeD6rg9ib8LRRPEYIGRBU -->
     <!-- Jonny's key AIzaSyAHc_PjfKT-J0fhuJTydD_qwYO_YUmvvko -->
 

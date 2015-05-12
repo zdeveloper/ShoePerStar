@@ -7,6 +7,7 @@ import com.material.widget.TabIndicator;
 import com.uta.shoeperstar.vibe.Fragment.DashboardFragment;
 import com.uta.shoeperstar.vibe.Fragment.DataVisualizationFragment;
 import com.uta.shoeperstar.vibe.Fragment.MapViewFragment;
+import com.uta.shoeperstar.vibe.Fragment.PaceFragment;
 import com.uta.shoeperstar.vibe.Fragment.SettingsFragment;
 
 /**
@@ -20,7 +21,7 @@ import com.uta.shoeperstar.vibe.Fragment.SettingsFragment;
  */
 public class TabsPagerAdapter extends FragmentStatePagerAdapter implements TabIndicator.TabTextProvider{
 
-    private final String[] TITLES = { "Home", "Map", "Settings", "Stats" };
+    private final String[] TITLES = { "Home", "Map", "Settings", "Stats", "Pace" };
 
     public TabsPagerAdapter(FragmentManager fm) {
         super(fm);
@@ -38,6 +39,8 @@ public class TabsPagerAdapter extends FragmentStatePagerAdapter implements TabIn
                 return new SettingsFragment();
             case 3:
                 return new DataVisualizationFragment();
+            case 4:
+                return new PaceFragment();
         }
 
         return null;

@@ -9,6 +9,7 @@ import android.view.MenuItem;
 import com.material.widget.TabIndicator;
 import com.uta.shoeperstar.vibe.Adapter.TabsPagerAdapter;
 import com.uta.shoeperstar.vibe.R;
+import com.uta.shoeperstar.vibe.Utilities.Database;
 
 
 public class MainActivity extends Activity {
@@ -33,6 +34,7 @@ public class MainActivity extends Activity {
 
         pager.setAdapter(adapter);
         tabs.setViewPager(pager);
+
 
     }
 
