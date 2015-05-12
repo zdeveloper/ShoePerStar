@@ -1,4 +1,4 @@
-package com.uta.shoeperstar.vibe.Utilities.VibeShoes;
+package com.uta.shoeperstar.vibe.Utilities.VibeBluetooth;
 
 import android.os.Handler;
 import android.os.Message;
@@ -9,11 +9,11 @@ import android.os.Message;
 public abstract class VibeShoeHandler extends Handler{
 
     /** Command to the service to display a message */
-    static final int MSG_BATTERY = 1;
-    static final int MSG_STEPS = 2;
-    static final int MSG_PULSE_ACTUAL = 3;
-    static final int MSG_PULSE_ESTIMATED = 4;
-    static final int MSG_RAW = 5;
+    public static final int MSG_BATTERY = 1;
+    public static final int MSG_STEPS = 2;
+    public static final int MSG_PULSE_ACTUAL = 3;
+    public static final int MSG_PULSE_ESTIMATED = 4;
+    public static final int MSG_RAW = 5;
 
    //@Override
     public void handleMessage(Message msg) {

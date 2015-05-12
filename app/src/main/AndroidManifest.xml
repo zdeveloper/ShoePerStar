@@ -64,7 +64,7 @@
         </service>
 
         <service
-            android:name=".Utilities.VibeShoes.VibeBluetoothService"
+            android:name=".Utilities.VibeBluetooth.VibeBluetoothService"
             android:enabled="true"
             android:exported="true"></service>
 

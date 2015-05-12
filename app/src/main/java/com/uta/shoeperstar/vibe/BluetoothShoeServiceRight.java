@@ -17,6 +17,7 @@ import android.util.Log;
 import java.nio.charset.Charset;
 import java.util.UUID;
 
+@Deprecated
 public class BluetoothShoeServiceRight extends Service {
 
 
@@ -39,6 +40,63 @@ public class BluetoothShoeServiceRight extends Service {
     private BluetoothGattCharacteristic rx;
     //this is only populated to the connected device
     private BluetoothDevice bluetoothDevice = null;
+    // Main BTLE device callback where much of the logic occurs.
+    private BluetoothGattCallback mGattCallback = new BluetoothGattCallback() {
+        // Called whenever the device connection state changes, i.e. from disconnected to connected.
+        @Override
+        public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
+            super.onConnectionStateChange(gatt, status, newState);
+            if (newState == BluetoothGatt.STATE_CONNECTED) {
+                writeLine("Connected!");
+                // Discover services.
+                if (!gatt.discoverServices()) {
+                    writeLine("Failed to start discovering services!");
+                }
+            } else if (newState == BluetoothGatt.STATE_DISCONNECTED) {
+                writeLine("Disconnected!");
+            } else {
+                writeLine("Connection state changed.  New state: " + newState);
+            }
+        }
+
+        // Called when services have been discovered on the remote device.
+        // It seems to be necessary to wait for this discovery to occur before
+        // manipulating any services or characteristics.
+        @Override
+        public void onServicesDiscovered(BluetoothGatt gatt, int status) {
+            super.onServicesDiscovered(gatt, status);
+            if (status == BluetoothGatt.GATT_SUCCESS) {
+                writeLine("Service discovery completed!");
+            } else {
+                writeLine("Service discovery failed with status: " + status);
+            }
+            // Save reference to each characteristic.
+            tx = gatt.getService(UART_UUID).getCharacteristic(TX_UUID);
+            rx = gatt.getService(UART_UUID).getCharacteristic(RX_UUID);
+            // Setup notifications on RX characteristic changes (i.e. data received).
+            // First call setCharacteristicNotification to enable notification.
+            if (!gatt.setCharacteristicNotification(rx, true)) {
+                writeLine("Couldn't set notifications for RX characteristic!");
+            }
+            // Next update the RX characteristic's client descriptor to enable notifications.
+            if (rx.getDescriptor(CLIENT_UUID) != null) {
+                BluetoothGattDescriptor desc = rx.getDescriptor(CLIENT_UUID);
+                desc.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
+                if (!gatt.writeDescriptor(desc)) {
+                    writeLine("Couldn't write RX client descriptor value!");
+                }
+            } else {
+                writeLine("Couldn't get RX client descriptor!");
+            }
+        }
+
+        // Called when a remote characteristic changes (like the RX characteristic).
+        @Override
+        public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
+            super.onCharacteristicChanged(gatt, characteristic);
+            onBluetoothReceive(characteristic.getStringValue(0));
+        }
+    };
 
     public BluetoothShoeServiceRight() {
     }
@@ -58,7 +116,7 @@ public class BluetoothShoeServiceRight extends Service {
             BluetoothManager bluetoothManager = (BluetoothManager) getApplicationContext().getSystemService(getApplicationContext().BLUETOOTH_SERVICE);
             BluetoothAdapter mBluetoothAdapter = bluetoothManager.getAdapter();
             //get the device
-            bluetoothDevice = mBluetoothAdapter.getDefaultAdapter().getRemoteDevice(address);
+            bluetoothDevice = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address);
 
             //if a device was already configured, connect to it. otherwise search for devices
             if (bluetoothDevice != null) {
@@ -96,7 +154,7 @@ public class BluetoothShoeServiceRight extends Service {
         }
     }
 
-    private void onBluetoothRecive(String message){
+    private void onBluetoothReceive(String message) {
         writeLine("Received: " + message);
 
 
@@ -114,13 +172,6 @@ public class BluetoothShoeServiceRight extends Service {
         Log.d(TAG, text);
     }
 
-
-    public class BluetoothServiceBinder extends Binder {
-        public BluetoothShoeServiceRight getService() {
-            return BluetoothShoeServiceRight.this;
-        }
-    }
-
     @Override
     public void onDestroy() {
         if (mBluetoothGatt != null) {
@@ -134,67 +185,11 @@ public class BluetoothShoeServiceRight extends Service {
         super.onDestroy();
     }
 
-    // Main BTLE device callback where much of the logic occurs.
-    private BluetoothGattCallback mGattCallback = new BluetoothGattCallback() {
-        // Called whenever the device connection state changes, i.e. from disconnected to connected.
-        @Override
-        public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
-            super.onConnectionStateChange(gatt, status, newState);
-            if (newState == BluetoothGatt.STATE_CONNECTED) {
-                writeLine("Connected!");
-                // Discover services.
-                if (!gatt.discoverServices()) {
-                    writeLine("Failed to start discovering services!");
-                }
-            }
-            else if (newState == BluetoothGatt.STATE_DISCONNECTED) {
-                writeLine("Disconnected!");
-            }
-            else {
-                writeLine("Connection state changed.  New state: " + newState);
-            }
+    public class BluetoothServiceBinder extends Binder {
+        public BluetoothShoeServiceRight getService() {
+            return BluetoothShoeServiceRight.this;
         }
-
-        // Called when services have been discovered on the remote device.
-        // It seems to be necessary to wait for this discovery to occur before
-        // manipulating any services or characteristics.
-        @Override
-        public void onServicesDiscovered(BluetoothGatt gatt, int status) {
-            super.onServicesDiscovered(gatt, status);
-            if (status == BluetoothGatt.GATT_SUCCESS) {
-                writeLine("Service discovery completed!");
-            }
-            else {
-                writeLine("Service discovery failed with status: " + status);
-            }
-            // Save reference to each characteristic.
-            tx = gatt.getService(UART_UUID).getCharacteristic(TX_UUID);
-            rx = gatt.getService(UART_UUID).getCharacteristic(RX_UUID);
-            // Setup notifications on RX characteristic changes (i.e. data received).
-            // First call setCharacteristicNotification to enable notification.
-            if (!gatt.setCharacteristicNotification(rx, true)) {
-                writeLine("Couldn't set notifications for RX characteristic!");
-            }
-            // Next update the RX characteristic's client descriptor to enable notifications.
-            if (rx.getDescriptor(CLIENT_UUID) != null) {
-                BluetoothGattDescriptor desc = rx.getDescriptor(CLIENT_UUID);
-                desc.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
-                if (!gatt.writeDescriptor(desc)) {
-                    writeLine("Couldn't write RX client descriptor value!");
-                }
-            }
-            else {
-                writeLine("Couldn't get RX client descriptor!");
-            }
-        }
-
-        // Called when a remote characteristic changes (like the RX characteristic).
-        @Override
-        public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
-            super.onCharacteristicChanged(gatt, characteristic);
-            onBluetoothRecive(characteristic.getStringValue(0));
-        }
-    };
+    }
 
 
 

@@ -4,6 +4,8 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 
+import com.google.android.gms.maps.model.LatLng;
+
 /**
  * Created by Jonny on 5/9/15.
  */
@@ -11,9 +13,12 @@ public abstract class NavigationUpdateHandler extends Handler {
 
     public static final int
             ROUTE_RECEIVED = 1,
-            NEARING_TURN = 2,
+            NEARING_END_OF_TURN = 2,
             MISSED_TURN = 3,
-            END_NAVIGATION = 4;
+            END_NAVIGATION = 4,
+            NEXT_POINT = 5,
+            NEXT_TURN = 6,
+            MESSAGE = 7;
 
     public NavigationUpdateHandler(Looper looper) {
         super(looper);
@@ -25,8 +30,10 @@ public abstract class NavigationUpdateHandler extends Handler {
             case ROUTE_RECEIVED:
                 onRouteReceived((NavigationRoute) msg.obj);
                 break;
-            case NEARING_TURN:
-                onNearingTurn((NavigationStep) msg.obj);
+            case NEXT_TURN:
+                onNewTurn((NavigationStep) msg.obj);
+            case NEARING_END_OF_TURN:
+                onEndOfTurn((NavigationStep) msg.obj);
                 break;
             case MISSED_TURN:
                 onRouteRecalculate();
@@ -34,8 +41,12 @@ public abstract class NavigationUpdateHandler extends Handler {
             case END_NAVIGATION:
                 onEndNavigation();
                 break;
+            case NEXT_POINT:
+                onNextPoint((LatLng) msg.obj);
+                break;
+            case MESSAGE:
             default:
-                super.handleMessage(msg);
+                onStringReceived((String) msg.obj);
                 break;
         }
     }
@@ -43,15 +54,20 @@ public abstract class NavigationUpdateHandler extends Handler {
     /**
      * This function will run when the HTTP request to Google Directions API returns a route
      *
-     * @param route received route json object from Google Directions API
+     * @param route received route object parsed from Google Directions API
      */
     public abstract void onRouteReceived(NavigationRoute route);
 
-    public abstract void onEndNavigation();
+    public abstract void onNewTurn(NavigationStep turn);
 
-    public abstract void onNearingTurn(NavigationStep turn);
+    public abstract void onEndOfTurn(NavigationStep turn);
 
     public abstract void onRouteRecalculate();
 
+    public abstract void onNextPoint(LatLng toPoint);
+
+    public abstract void onEndNavigation();
+
+    public abstract void onStringReceived(String message);
 
 }

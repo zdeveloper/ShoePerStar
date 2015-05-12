@@ -1,4 +1,4 @@
-package com.uta.shoeperstar.vibe.Utilities.VibeShoes;
+package com.uta.shoeperstar.vibe.Utilities.VibeBluetooth;
 
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
@@ -6,7 +6,6 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.content.Intent;
 import android.os.Binder;
-import android.os.Build;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
@@ -17,52 +16,56 @@ import android.widget.Toast;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.lang.reflect.Method;
 import java.util.UUID;
 
 /** This is a Bluetooth service to manage the bluetooth device.
  * NOTE: this service assumes bluetooth is already ON
  * Created by Zedd on 5/4/2015.
  */
-public class VibeBluetoothService extends Service implements VibeShoeInterface{
+public class VibeBluetoothService extends Service implements VibeShoeInterface {
 
     public static final int RIGHT_SHOE = 0;
     public static final int LEFT_SHOE = 1;
-    private static final UUID MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
-    private static String rightAddress = "20:13:09:29:14:09";
-    private static String leftAddress = "20:13:09:29:14:09";
-    private final Binder serviceBinder = new BluetoothServiceBinder();
-    /**
-     * Messenger for communicating with the activity.
-     */
+
+    /** Messenger for communicating with the activity. */
     private Messenger rightShoeListener = null;
     private Messenger leftShoeListener = null;
+
     //The following are data containers
-    private int leftSteps = 0, rightSteps = 0;
-    private int rightBpmEstimated = 0, rightBpmActual = 0;
-    private int leftBpmEstimated = 0, leftBpmActual = 0;
+    private int leftSteps=0, rightSteps=0;
+    private int rightBpmEstimated=0, rightBpmActual=0;
+    private int leftBpmEstimated=0, leftBpmActual=0;
+    private int leftBatteryLevel=0, rightBatteryLevel=0;
+
+
+    private static final UUID MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
+
+    private final Binder serviceBinder = new BluetoothServiceBinder();
+
+    private BluetoothAdapter btAdapter = null;
 
     //private BluetoothSocket rightBtSocket = null;
     //private BluetoothSocket leftBtSocket = null;
-    private int leftBatteryLevel = 0, rightBatteryLevel = 0;
-    private BluetoothAdapter btAdapter = null;
+
     private OutputStream rightOutStream = null;
     private OutputStream leftOutStream = null;
+
     private String TAG = "DEBUG";
+
+
+    private static String rightAddress = "20:13:09:29:14:09";
+    private static String leftAddress = "20:15:03:03:07:29";
 
     public VibeBluetoothService() {}
 
 
     private BluetoothSocket createBluetoothSocket(BluetoothDevice device) throws IOException {
-        if (Build.VERSION.SDK_INT >= 10) {
-            try {
-                final Method m = device.getClass().getMethod("createInsecureRfcommSocketToServiceRecord", UUID.class);
-                return (BluetoothSocket) m.invoke(device, MY_UUID);
-            } catch (Exception e) {
-                Log.e(TAG, "Could not create Insecure RFComm Connection", e);
-            }
+        try{
+            return device.createRfcommSocketToServiceRecord(MY_UUID);
+        } catch (Exception e){
+            Log.d(TAG, "I crashed creating the frickin socket.");
         }
-        return device.createRfcommSocketToServiceRecord(MY_UUID);
+        return null;
     }
 
     private void showToast(String title, String message) {
@@ -85,10 +88,18 @@ public class VibeBluetoothService extends Service implements VibeShoeInterface{
         // Set up a pointer to the remote node using it's address.
         BluetoothDevice rightVibeDevice = btAdapter.getRemoteDevice(rightAddress);
 
+        BluetoothDevice leftVibeDevice = btAdapter.getRemoteDevice(leftAddress);
+
+
         // Set up a pointer to the remote node using it's address.
         //BluetoothDevice leftVibeDevice = btAdapter.getRemoteDevice(leftAddress);
 
-        rightOutStream = makeStreamFromDevice(RIGHT_SHOE, rightVibeDevice);
+//        rightOutStream = makeStreamFromDevice(RIGHT_SHOE, rightVibeDevice);
+//        leftOutStream = makeStreamFromDevice(LEFT_SHOE, leftVibeDevice);
+        new VibeConnection(LEFT_SHOE, leftVibeDevice);
+
+        new VibeConnection(RIGHT_SHOE, rightVibeDevice);
+
 
         // Discovery is resource intensive.  Make sure it isn't going on
         // when you attempt to connect and pass your message.
@@ -100,7 +111,12 @@ public class VibeBluetoothService extends Service implements VibeShoeInterface{
 
     @Override
     public IBinder onBind(Intent intent) {
-        startService();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                startService();
+            }
+        }).start();
         return serviceBinder;
     }
 
@@ -204,61 +220,13 @@ public class VibeBluetoothService extends Service implements VibeShoeInterface{
                             }
                         }
                         Thread.sleep(200);  // we sleep here to conserve battery
-                    } catch (Exception e) {
-//                        Log.e(TAG, "ERROR in receiving data, shoe code:" + shoe + "\nError: " + e.toString());
+                    } catch (Exception e){
+                        Log.e(TAG, "ERROR in receiving data, shoe code:" + shoe + "\nError: " + e.toString());
                     }
                 }
             }
         }).start();
 
-    }
-
-    private OutputStream makeStreamFromDevice(final int shoe, BluetoothDevice device ) {
-        OutputStream outStream = null;
-        BluetoothSocket btSocket = null;
-
-        Log.d(TAG, "Connecting to " + device.getName());
-
-        try {
-            btSocket = createBluetoothSocket(device);
-        } catch (Exception e1) {
-            Log.e(TAG, "Fatal Error : socket creation failed: " + e1.getMessage() + ".");
-        }
-
-        try {
-            Log.d(TAG, "...Connection ok...");
-            btSocket.connect();
-        } catch (Exception e) {
-            try {
-                btSocket.close();
-            } catch (Exception e2) {
-                Log.e(TAG, "Fatal Error : unable to close socket during connection failure" + e2.getMessage() + ".");
-            }
-        }
-
-        // Create a data stream so we can talk to server.
-        Log.d(TAG, "Socket Created");
-
-        try {
-            outStream = btSocket.getOutputStream();
-        } catch (IOException e) {
-            Log.e(TAG, "Fatal Error : Output stream creation failed:" + e.getMessage() + ".");
-        }
-
-
-        final BluetoothSocket btSocket2 = btSocket;
-        //setting up the input stream monitor thread
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    monitorInputSteam(shoe, btSocket2.getInputStream());
-                } catch (Exception e){
-                    Log.e(TAG, "Fatal Error : Input stream creation failed:" + e.getMessage() + ".");
-                }
-            }
-        }).start();
-        return outStream;
     }
 
     private void sendData(final int shoeCode, String message) {
@@ -335,7 +303,7 @@ public class VibeBluetoothService extends Service implements VibeShoeInterface{
                     //send the command as many times needed
                     while (numberOfVibrations > 0){
                         sendData(shoe, msg);
-                        Thread.sleep(sleepDuration*1000);
+                        Thread.sleep(sleepDuration*1000 + 1100);
                         numberOfVibrations--;
                     }
                 } catch(Exception e){
@@ -392,12 +360,84 @@ public class VibeBluetoothService extends Service implements VibeShoeInterface{
 
     public class BluetoothServiceBinder extends Binder{
         /** This service returns the service **/
-        VibeBluetoothService getService() {
+        public VibeBluetoothService getService() {
             return VibeBluetoothService.this;
         }
 
     }
 
 
+    public class VibeConnection extends Thread{
 
+        public VibeConnection(final int shoe, BluetoothDevice device){
+
+            if(shoe == LEFT_SHOE){
+                leftOutStream = makeStreamFromDevice(shoe, device);
+            } else {
+                rightOutStream = makeStreamFromDevice(shoe, device);
+            }
+        }
+
+        @Override
+        public void run() {
+
+        }
+
+        private OutputStream makeStreamFromDevice(final int shoe, BluetoothDevice device ) {
+            OutputStream outStream = null;
+            BluetoothSocket btSocket = null;
+
+            Log.d(TAG, "Connecting to " + device.getName());
+
+            try {
+
+                // Create a data stream so we can talk to server.
+                btSocket = createBluetoothSocket(device);
+                Log.d(TAG, "Socket Created");
+
+            } catch (Exception e1) {
+                Log.e(TAG, "Fatal Error : socket creation failed: " + e1.getMessage() + ".");
+            }
+
+            try {
+                btSocket.connect();
+                Log.d(TAG, "...Connection ok...");
+            } catch (Exception e) {
+                Log.d(TAG, "Connection failed: " + e.toString());
+                try {
+                    btSocket.close();
+                } catch (Exception e2) {
+                    Log.e(TAG, "Fatal Error : unable to close socket during connection failure" + e2.getMessage() + ".");
+                }finally {
+                    return null;
+                }
+            }
+
+            try {
+                outStream = btSocket.getOutputStream();
+                if(btSocket.getOutputStream() == null){
+                    Log.d(TAG, "Output is null");
+                }
+            } catch (IOException e) {
+                Log.e(TAG, "Fatal Error : Output stream creation failed:" + e.getMessage() + ".");
+            }
+
+            Log.d(TAG, "I am starting to monitor input stream");
+
+            final BluetoothSocket btSocket2 = btSocket;
+            //setting up the input stream monitor thread
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        monitorInputSteam(shoe, btSocket2.getInputStream());
+                    } catch (Exception e){
+                        Log.e(TAG, "Fatal Error : Input stream creation failed:" + e.getMessage() + ".");
+                    }
+                }
+            }).start();
+
+            return outStream;
+        }
+    }
 }
