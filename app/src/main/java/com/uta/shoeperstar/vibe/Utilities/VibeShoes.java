@@ -47,7 +47,7 @@ public class VibeShoes implements VibeShoeInterface{
         //if all is good, start the service
         Intent intent = new Intent(activity, VibeBluetoothService.class);
         activity.bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
-        activity.startService(intent);
+        //activity.startService(intent);
     }
 
     public static VibeShoes getInstance(Activity activity){
