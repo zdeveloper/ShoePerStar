@@ -1,4 +1,4 @@
-package com.uta.shoeperstar.vibe.Utilities;
+package com.uta.shoeperstar.vibe.Utilities.VibeBluetooth;
 
 import android.os.IBinder;
 

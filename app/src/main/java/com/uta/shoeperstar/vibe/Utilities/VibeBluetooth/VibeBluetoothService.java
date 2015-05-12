@@ -1,4 +1,4 @@
-package com.uta.shoeperstar.vibe.Utilities;
+package com.uta.shoeperstar.vibe.Utilities.VibeBluetooth;
 
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
@@ -22,7 +22,7 @@ import java.util.UUID;
  * NOTE: this service assumes bluetooth is already ON
  * Created by Zedd on 5/4/2015.
  */
-public class VibeBluetoothService extends Service implements VibeShoeInterface{
+public class VibeBluetoothService extends Service implements VibeShoeInterface {
 
     public static final int RIGHT_SHOE = 0;
     public static final int LEFT_SHOE = 1;
@@ -360,7 +360,7 @@ public class VibeBluetoothService extends Service implements VibeShoeInterface{
 
     public class BluetoothServiceBinder extends Binder{
         /** This service returns the service **/
-        VibeBluetoothService getService() {
+        public VibeBluetoothService getService() {
             return VibeBluetoothService.this;
         }
 

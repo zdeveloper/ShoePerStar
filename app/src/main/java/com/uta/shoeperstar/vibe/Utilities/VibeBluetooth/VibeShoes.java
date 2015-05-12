@@ -1,4 +1,4 @@
-package com.uta.shoeperstar.vibe.Utilities;
+package com.uta.shoeperstar.vibe.Utilities.VibeBluetooth;
 
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
@@ -10,6 +10,8 @@ import android.os.IBinder;
 import android.os.Messenger;
 import android.util.Log;
 import android.widget.Toast;
+
+import com.uta.shoeperstar.vibe.Utilities.VibeBluetoothService;
 
 /** This is a Singleton class that represents the shoes
  * Created by Zedd on 5/4/2015.
@@ -23,6 +25,23 @@ public class VibeShoes implements VibeShoeInterface{
 
     private static VibeShoes instance = null;
     private static VibeBluetoothService vibeBluetoothService = null;
+    /**
+     * Defines callbacks for service binding, passed to bindService()
+     */
+    private ServiceConnection mConnection = new ServiceConnection() {
+
+        @Override
+        public void onServiceConnected(ComponentName className,
+                                       IBinder service) {
+            // We've bound to LocalService, cast the IBinder and get LocalService instance
+            VibeBluetoothService.BluetoothServiceBinder binder = (VibeBluetoothService.BluetoothServiceBinder) service;
+            vibeBluetoothService = binder.getService();
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName arg0) {
+        }
+    };
 
     protected VibeShoes(Activity activity){
         //enable bluetooth
@@ -56,22 +75,6 @@ public class VibeShoes implements VibeShoeInterface{
         }
         return instance;
     }
-
-
-    /** Defines callbacks for service binding, passed to bindService() */
-    private ServiceConnection mConnection = new ServiceConnection() {
-
-        @Override
-        public void onServiceConnected(ComponentName className,
-                                       IBinder service) {
-            // We've bound to LocalService, cast the IBinder and get LocalService instance
-            VibeBluetoothService.BluetoothServiceBinder binder = (VibeBluetoothService.BluetoothServiceBinder) service;
-            vibeBluetoothService = binder.getService();
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName arg0) {}
-    };
 
     @Override
     public void sendVibrationCommand(int shoe, int count, int intensity, int duration) {
