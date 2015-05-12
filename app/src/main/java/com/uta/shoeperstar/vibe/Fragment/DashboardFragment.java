@@ -73,7 +73,9 @@ public class DashboardFragment extends Fragment {
         vibeShoes = VibeShoes.getInstance(getActivity());
         //note that data will take some time to get to the shoe
 
-        vibeShoes.setRightShoeListener(new VibeHandler()); //registering handler
+        vibeShoes.setRightShoeListener(new RightVibeHandler()); //registering handler
+        vibeShoes.setLeftShoeListener(new LeftVibeHandler()); //registering handler
+
 
         //adding onclick listeners
         leftShoe.setOnClickListener(new View.OnClickListener() {
@@ -110,7 +112,8 @@ public class DashboardFragment extends Fragment {
         vibrateBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                vibeShoes.sendVibrationCommand(VibeShoes.RIGHT_SHOE, 2,100, 1);
+                vibeShoes.sendVibrationCommand(VibeShoes.RIGHT_SHOE, 2,100, 5);
+                vibeShoes.sendVibrationCommand(VibeShoes.LEFT_SHOE, 2,100, 5);
             }
         });
         //send battery level for left shoe
@@ -133,33 +136,63 @@ public class DashboardFragment extends Fragment {
     /**
      * This is a call back class
      */
-    class VibeHandler extends VibeShoeHandler {
+    class RightVibeHandler extends VibeShoeHandler {
 
         @Override
         public void onStepReceived(int steps) {
-            Log.d(TAG, "Steps: " + steps);
+            Log.d(TAG, "Right Steps: " + steps);
             stepCount.setText(steps+"");
         }
 
         @Override
         public void onBatteryLevelReceived(int batteryLevel) {
-            Log.d(TAG, "Battery: " + batteryLevel);
+            Log.d(TAG, "Right Battery: " + batteryLevel);
         }
 
         @Override
         public void onPulseEstimatedReceived(int pulses) {
-            Log.d(TAG, "Estimated Pulses: " + pulses);
+            Log.d(TAG, "Right Estimated Pulses: " + pulses);
         }
 
         @Override
         public void onPulseActualReceived(int pulses) {
-            Log.d(TAG, "Actual Pulses: " + pulses);
+            Log.d(TAG, "Right Actual Pulses: " + pulses);
         }
 
         @Override
         public void onStringReceived(String message) {
-            Log.d(TAG, "Raw Message: " + message);
+            Log.d(TAG, "Right Raw Message: " + message);
         }
     }
 
+
+
+    class LeftVibeHandler extends VibeShoeHandler {
+
+        @Override
+        public void onStepReceived(int steps) {
+            Log.d(TAG, "Left Steps: " + steps);
+            stepCount.setText(steps+"");
+        }
+
+        @Override
+        public void onBatteryLevelReceived(int batteryLevel) {
+            Log.d(TAG, "Left Battery: " + batteryLevel);
+        }
+
+        @Override
+        public void onPulseEstimatedReceived(int pulses) {
+            Log.d(TAG, "Left Estimated Pulses: " + pulses);
+        }
+
+        @Override
+        public void onPulseActualReceived(int pulses) {
+            Log.d(TAG, "Left Actual Pulses: " + pulses);
+        }
+
+        @Override
+        public void onStringReceived(String message) {
+            Log.d(TAG, "Left Raw Message: " + message);
+        }
+    }
 }

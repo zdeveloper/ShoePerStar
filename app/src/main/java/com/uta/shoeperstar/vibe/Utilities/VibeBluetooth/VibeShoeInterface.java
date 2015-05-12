@@ -12,7 +12,7 @@ public interface VibeShoeInterface {
      * @param shoe specify a shoe using ex. BluetoothService.RIGHT_SHOE
      * @param count how many times should the shoe vibrate (0 - 255)
      * @param intensity vibration intensity (0 - 255)
-     * @param duration vibration duration in seconds (0 - 255)
+     * @param duration vibration duration in deci-seconds (0 - 255)
      */
     void sendVibrationCommand(final int shoe, int count, int intensity, int duration);
 

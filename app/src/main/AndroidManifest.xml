@@ -36,7 +36,7 @@
 
         <meta-data
             android:name="com.google.android.maps.v2.API_KEY"
-            android:value="@string/JONNY_KEY" />
+            android:value="@string/ZEDD_KEY" />
 
         <activity
             android:name=".Activity.SplashActivity"
@@ -55,11 +55,6 @@
             android:label="@string/title_activity_main" >
         </activity>
 
-        <service
-            android:name=".BluetoothShoeServiceRight"
-            android:enabled="true"
-            android:exported="true" >
-        </service>
 
         <service
             android:name=".Utilities.VibeBluetooth.VibeBluetoothService"

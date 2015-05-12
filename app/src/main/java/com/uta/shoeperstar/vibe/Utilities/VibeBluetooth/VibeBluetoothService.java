@@ -44,8 +44,10 @@ public class VibeBluetoothService extends Service implements VibeShoeInterface {
 
     private BluetoothAdapter btAdapter = null;
 
-    //private BluetoothSocket rightBtSocket = null;
-    //private BluetoothSocket leftBtSocket = null;
+    private VibeConnection rightVibeConnection, leftVibeConnection;
+
+    private BluetoothSocket rightBtSocket = null;
+    private BluetoothSocket leftBtSocket = null;
 
     private OutputStream rightOutStream = null;
     private OutputStream leftOutStream = null;
@@ -77,6 +79,7 @@ public class VibeBluetoothService extends Service implements VibeShoeInterface {
         Log.d(TAG, "VibeBluetoothService is alive");
 
 
+
         //assuming BT is enabled by before
         btAdapter = BluetoothAdapter.getDefaultAdapter();
 
@@ -96,17 +99,15 @@ public class VibeBluetoothService extends Service implements VibeShoeInterface {
 
 //        rightOutStream = makeStreamFromDevice(RIGHT_SHOE, rightVibeDevice);
 //        leftOutStream = makeStreamFromDevice(LEFT_SHOE, leftVibeDevice);
-        new VibeConnection(LEFT_SHOE, leftVibeDevice);
 
-        new VibeConnection(RIGHT_SHOE, rightVibeDevice);
+        leftVibeConnection = new VibeConnection(LEFT_SHOE, leftVibeDevice);
+
+        rightVibeConnection = new VibeConnection(RIGHT_SHOE, rightVibeDevice);
 
 
         // Discovery is resource intensive.  Make sure it isn't going on
         // when you attempt to connect and pass your message.
         btAdapter.cancelDiscovery();
-
-        //making the service sticky
-       // return Service.START_STICKY;
     }
 
     @Override
@@ -230,7 +231,7 @@ public class VibeBluetoothService extends Service implements VibeShoeInterface {
     }
 
     private void sendData(final int shoeCode, String message) {
-        OutputStream outStream = null;
+        OutputStream outStream;
         if(shoeCode == RIGHT_SHOE){
             outStream = rightOutStream;
         } else {
@@ -303,7 +304,7 @@ public class VibeBluetoothService extends Service implements VibeShoeInterface {
                     //send the command as many times needed
                     while (numberOfVibrations > 0){
                         sendData(shoe, msg);
-                        Thread.sleep(sleepDuration*1000 + 1100);
+                        Thread.sleep(sleepDuration*100 + 200);
                         numberOfVibrations--;
                     }
                 } catch(Exception e){
@@ -367,9 +368,13 @@ public class VibeBluetoothService extends Service implements VibeShoeInterface {
     }
 
 
-    public class VibeConnection extends Thread{
+    public class VibeConnection {
+        int shoe;
+        BluetoothDevice device;
 
         public VibeConnection(final int shoe, BluetoothDevice device){
+            this.shoe = shoe;
+            this.device = device;
 
             if(shoe == LEFT_SHOE){
                 leftOutStream = makeStreamFromDevice(shoe, device);
@@ -378,9 +383,12 @@ public class VibeBluetoothService extends Service implements VibeShoeInterface {
             }
         }
 
-        @Override
-        public void run() {
-
+        public void reconnectVibe(){
+            if(shoe == LEFT_SHOE){
+                leftOutStream = makeStreamFromDevice(shoe, device);
+            } else {
+                rightOutStream = makeStreamFromDevice(shoe, device);
+            }
         }
 
         private OutputStream makeStreamFromDevice(final int shoe, BluetoothDevice device ) {
@@ -393,6 +401,9 @@ public class VibeBluetoothService extends Service implements VibeShoeInterface {
 
                 // Create a data stream so we can talk to server.
                 btSocket = createBluetoothSocket(device);
+                if(shoe == LEFT_SHOE) leftBtSocket = btSocket;
+                else rightBtSocket = btSocket;
+
                 Log.d(TAG, "Socket Created");
 
             } catch (Exception e1) {
@@ -409,7 +420,8 @@ public class VibeBluetoothService extends Service implements VibeShoeInterface {
                 } catch (Exception e2) {
                     Log.e(TAG, "Fatal Error : unable to close socket during connection failure" + e2.getMessage() + ".");
                 }finally {
-                    return null;
+                    //try again!
+                    return makeStreamFromDevice(shoe, device);
                 }
             }
 
