@@ -11,8 +11,6 @@ import android.os.Messenger;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.uta.shoeperstar.vibe.Utilities.VibeBluetoothService;
-
 /** This is a Singleton class that represents the shoes
  * Created by Zedd on 5/4/2015.
  */

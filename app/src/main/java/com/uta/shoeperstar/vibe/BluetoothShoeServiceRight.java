@@ -17,6 +17,7 @@ import android.util.Log;
 import java.nio.charset.Charset;
 import java.util.UUID;
 
+@Deprecated
 public class BluetoothShoeServiceRight extends Service {
 
 

@@ -14,8 +14,8 @@ import android.widget.TextView;
 import com.material.widget.PaperButton;
 import com.skyfishjy.library.RippleBackground;
 import com.uta.shoeperstar.vibe.R;
-import com.uta.shoeperstar.vibe.Utilities.VibeShoes.VibeShoeHandler;
-import com.uta.shoeperstar.vibe.Utilities.VibeShoes.VibeShoes;
+import com.uta.shoeperstar.vibe.Utilities.VibeBluetooth.VibeShoeHandler;
+import com.uta.shoeperstar.vibe.Utilities.VibeBluetooth.VibeShoes;
 
 
 public class DashboardFragment extends Fragment {
