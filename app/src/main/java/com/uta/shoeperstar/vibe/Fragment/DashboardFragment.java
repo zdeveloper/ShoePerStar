@@ -30,8 +30,8 @@ public class DashboardFragment extends Fragment {
 
     private VibeShoes vibeShoes;
 
-    private PaperButton vibrateBtn;
-
+    private PaperButton vibrateBtn, pulseBtn;
+    private boolean pulseStatus = true;
 
     public DashboardFragment() {
         // Required empty public constructor
@@ -52,6 +52,8 @@ public class DashboardFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_dashboard, container, false);
 
         vibrateBtn = (PaperButton) view.findViewById(R.id.sendVibrationButton);
+        pulseBtn = (PaperButton) view.findViewById(R.id.togglePulseButton);
+
 
         rippleBackgroundLeft=(RippleBackground)view.findViewById(R.id.shoe_left_ripple);
         rippleBackgroundRight=(RippleBackground)view.findViewById(R.id.shoe_right_ripple);
@@ -112,8 +114,16 @@ public class DashboardFragment extends Fragment {
         vibrateBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                vibeShoes.sendVibrationCommand(VibeShoes.RIGHT_SHOE, 2,100, 5);
-                vibeShoes.sendVibrationCommand(VibeShoes.LEFT_SHOE, 2,100, 5);
+                vibeShoes.sendVibrationCommand(VibeShoes.RIGHT_SHOE, 2, 100, 5);
+                vibeShoes.sendVibrationCommand(VibeShoes.LEFT_SHOE, 2, 100, 5);
+            }
+        });
+
+        pulseBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                pulseStatus=!pulseStatus;
+                vibeShoes.enablePulse(VibeShoes.LEFT_SHOE, pulseStatus);
             }
         });
         //send battery level for left shoe

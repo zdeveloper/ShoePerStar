@@ -164,6 +164,11 @@ public class VibeShoes implements VibeShoeInterface{
         }).start();
     }
 
+    @Override
+    public void enablePulse(int shoe, boolean val) {
+        vibeBluetoothService.enablePulse(shoe, val);
+    }
+
     /*** This sets up the handler for the left vibe shoe ***/
     public void setLeftShoeListener(final VibeShoeHandler handler) {
         final Messenger ms = new Messenger(handler); //making a messenger with a new instance of handler

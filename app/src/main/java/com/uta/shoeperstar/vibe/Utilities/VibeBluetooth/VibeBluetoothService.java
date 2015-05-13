@@ -220,7 +220,7 @@ public class VibeBluetoothService extends Service implements VibeShoeInterface {
 
                             }
                         }
-                        Thread.sleep(200);  // we sleep here to conserve battery
+                        Thread.sleep(300);  // we sleep here to conserve battery
                     } catch (Exception e){
                         Log.e(TAG, "ERROR in receiving data, shoe code:" + shoe + "\nError: " + e.toString());
                     }
@@ -358,6 +358,20 @@ public class VibeBluetoothService extends Service implements VibeShoeInterface {
     public void setLeftShoeListener(IBinder binder) {
         leftShoeListener = new Messenger(binder);
     }
+
+    @Override
+    public void enablePulse(int shoe, boolean val) {
+        byte[] command = new byte[2];
+        command[0] = (byte)'P';
+
+
+        if(val == true) command[1] = (byte)'1';
+        else {command[1] = (byte)'0';}
+
+        //sending the command
+        sendData(shoe,command);
+    }
+
 
     public class BluetoothServiceBinder extends Binder{
         /** This service returns the service **/

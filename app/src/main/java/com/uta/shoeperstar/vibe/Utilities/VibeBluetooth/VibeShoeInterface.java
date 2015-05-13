@@ -72,4 +72,10 @@ public interface VibeShoeInterface {
     void setLeftShoeListener(final IBinder binder);
 
 
+    /**
+     * This enables the pulse sensor
+     * @param val is a boolean value
+     */
+    void enablePulse(final int shoe, final boolean val);
+
 }

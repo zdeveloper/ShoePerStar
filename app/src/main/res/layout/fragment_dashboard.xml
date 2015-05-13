@@ -163,18 +163,29 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:layout_margin="15dp"
+        android:orientation="vertical"
         android:gravity="center"
         android:padding="20dp">
 
         <com.material.widget.PaperButton
             android:id="@+id/sendVibrationButton"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true"
+            android:layout_height="70dp"
             widget:paper_color="@color/primary_light"
             widget:paper_shadow_color="@color/primary"
             widget:paper_shadow_radius="10"
             widget:paper_text="Send Vibration"
+            widget:paper_text_color="@color/primary_dark" />
+
+
+        <com.material.widget.PaperButton
+            android:id="@+id/togglePulseButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            widget:paper_color="@color/primary_light"
+            widget:paper_shadow_color="@color/primary"
+            widget:paper_shadow_radius="10"
+            widget:paper_text="Toggle Pulse"
             widget:paper_text_color="@color/primary_dark" />
 
 
