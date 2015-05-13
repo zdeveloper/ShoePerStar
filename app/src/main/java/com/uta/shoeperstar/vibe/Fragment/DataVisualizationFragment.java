@@ -188,7 +188,7 @@ public class DataVisualizationFragment extends Fragment implements AdapterView.O
             int current, value;
             for(int i =0; i < temp.size(); i++){
                 current = temp.get(i).getData();
-                Log.d("Current Value", "" + current);
+//                Log.d("Current Value", "" + current);
                 value = current - prev;
                 results.add(new Data(value));
                 prev = current;
