@@ -147,6 +147,7 @@ public class Database extends SQLiteOpenHelper {
             db.close();
             return stepData;
         }catch (CursorIndexOutOfBoundsException e){
+            Log.d("Error","Index error caught");
             ArrayList<Data> pulseRecord = new ArrayList<>();
             return pulseRecord;
         }
@@ -194,6 +195,7 @@ public class Database extends SQLiteOpenHelper {
             db.close();
             return pulseRecord;
         }catch (CursorIndexOutOfBoundsException e){
+            Log.d("Error","Index error caught");
             ArrayList<Data> pulseRecord = new ArrayList<>();
             return pulseRecord;
         }

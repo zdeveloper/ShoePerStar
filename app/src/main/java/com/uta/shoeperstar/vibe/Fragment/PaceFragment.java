@@ -13,10 +13,12 @@ import android.view.animation.Animation;
 import android.view.animation.RotateAnimation;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.NumberPicker;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.triggertrap.seekarc.SeekArc;
 import com.uta.shoeperstar.vibe.R;
 import com.uta.shoeperstar.vibe.Utilities.PaceCountDownTimer;
 
@@ -28,16 +30,20 @@ import java.util.concurrent.TimeUnit;
  * Created by tommy on 24/04/15.
  */
 public class PaceFragment extends Fragment {
-    TextView timerTextView, distanceTextView, distanceQuestion, timeQuestion;
-    EditText distanceText;
-
+    TextView distancetv, timetv, distanceQuestion, timeQuestion;
     private static final int ONESEC  = 1000 ;
-    int secondVal, minuteVal;
+    private static final float MAXDISTANCEVALUE  = 5 ;
+    FrameLayout second, first;
+
+    float secondVal, minuteVal;
     double distanceToGo;
     double[] distanceData = {1,.9,.8,.7,.7,.7,.6,.5,.2,0};
     long countdownTime, timeRemain;
-    float pace, distance;
+    int time;
+    double pace, distance;
+    private SeekArc distanceSeek , timeSeek;
    // NumberPicker minutes, seconds;
+
     Button setTimeButton, paceButton;
     Handler getDistanceHandler;
 
@@ -61,23 +67,14 @@ public class PaceFragment extends Fragment {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_pace, container, false);
 
-//        minutes =(NumberPicker) view.findViewById(R.id.minutePicker);
-//        seconds =(NumberPicker) view.findViewById(R.id.secondPicker);
-//        distanceTextView = (TextView) view.findViewById(R.id.distanceTextView);
-//        minutes.setMaxValue(59);
-//        minutes.setMinValue(0);
-//        minutes.setWrapSelectorWheel(true);
-//        seconds.setMaxValue(59);
-//        seconds.setMinValue(0);
-//        seconds.setWrapSelectorWheel(true);
-
-        //setDistanceButton =  (Button) view.findViewById(R.id.setDistance);
-//        setTimeButton = (Button)view.findViewById(R.id.setPace);
-//        timerTextView = (TextView) view.findViewById(R.id.timerTextView);
+        first = (FrameLayout) view.findViewById(R.id.paceLayout1);
+        second = (FrameLayout) view.findViewById(R.id.paceLayout2);
         distanceQuestion = (TextView) view.findViewById(R.id.distanceQuestion);
-        distanceText = (EditText) view.findViewById(R.id.distanceEditText);
-
-
+        timeQuestion = (TextView) view.findViewById(R.id.timeQuestion);
+        distanceSeek = (SeekArc) view.findViewById(R.id.distanceSeekArc);
+        distancetv = (TextView) view.findViewById(R.id.distanceProgress);
+        timeSeek = (SeekArc) view.findViewById(R.id.timeSeekArc);
+        timetv = (TextView) view.findViewById(R.id.timeProgress);
 
 //
 //
@@ -87,7 +84,68 @@ public class PaceFragment extends Fragment {
 
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState){
-//        getDistanceHandler = new Handler();
+          distanceSeek.setOnSeekArcChangeListener( new SeekArc.OnSeekArcChangeListener() {
+              @Override
+              public void onProgressChanged(SeekArc seekArc, int i, boolean b) {
+                  distancetv.setClickable(false);
+                  distance =((float)i* MAXDISTANCEVALUE)/100;
+                  String fuck =String.format("%.2f", distance);
+                  distancetv.setText(fuck);
+              }
+
+              @Override
+              public void onStartTrackingTouch(SeekArc seekArc) {
+                    distancetv.setClickable(false);
+              }
+
+              @Override
+              public void onStopTrackingTouch(SeekArc seekArc) {
+                  distancetv.setText("Next");
+                  distancetv.setClickable(true);
+                  distancetv.setOnClickListener(new View.OnClickListener() {
+                      @Override
+                      public void onClick(View v) {
+                          Log.d("button Clicked", "button clicked homie");
+                          first.setVisibility(View.GONE);
+                          second.setVisibility(View.VISIBLE);
+                          timeQuestion.setText("Select a time");
+                          timeQuestion.setVisibility(View.VISIBLE);
+                      }
+                  });
+              }
+          });
+
+
+        timeSeek.setOnSeekArcChangeListener(new SeekArc.OnSeekArcChangeListener(){
+            @Override
+            public void onProgressChanged(SeekArc seekArc, int i, boolean b) {
+                timetv.setClickable(false);
+                time = i;
+                timetv.setText("" + time);
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekArc seekArc) {
+                timetv.setClickable(false);
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekArc seekArc) {
+                timetv.setText("Set Pace");
+                timetv.setClickable(true);
+                timetv.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Log.d("set button Clicked", " set button clicked homie");
+
+                    }
+                });
+            }
+        });
+
+
+
+          //        getDistanceHandler = new Handler();
 //        // when values change then it updates the Minutes and seconds variable
 //        minutes.setOnValueChangedListener( new NumberPicker.OnValueChangeListener() {
 //            @Override
