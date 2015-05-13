@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
+import android.database.CursorIndexOutOfBoundsException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
@@ -51,7 +52,7 @@ public class Database extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db) {
 //        String DROP_STEPCOUNT_TABLE = "DROP TABLE " + DATABASE_NAME+"."+TABLE_STEPCOUNT;
-//        String DROP_PULSE_TABLE = "DROP TABLE " + TABLE_PULSE;
+//        String DROP_PULSE_TABLE = "DROP TABLE " + DATABASE_NAME+"."+TABLE_PULSE;
 //
 //        db.execSQL(DROP_STEPCOUNT_TABLE);
 //        db.execSQL(DROP_PULSE_TABLE);
@@ -107,86 +108,95 @@ public class Database extends SQLiteOpenHelper {
 
 
     public ArrayList<Data> getStepCount(String timePeriod) {
-        String query = "";
+        try {
+            String query = "";
 //        Log.d("timePeriod:", timePeriod);
-        switch(timePeriod){
-            case "day":
-                Log.d("in Day:", " Hello!");
-                query = "SELECT  MAX(steps) as Steps, strftime('%m/%d', Timestamp) as time FROM "+ TABLE_STEPCOUNT+" GROUP BY strftime('%j', Timestamp)" ;
-                break;
-            case "hour":
-                query = "SELECT  MAX(steps) as Steps, strftime('%H', Timestamp) as hour FROM "+ TABLE_STEPCOUNT +" GROUP BY strftime('%j-%H', Timestamp)" ;
-                break;
-            case "minute":
-                query = "SELECT  MAX(steps) as Steps, strftime('%H:%M', Timestamp) as hour FROM "+ TABLE_STEPCOUNT +" GROUP BY strftime('%j-%H-%M', Timestamp)" ;
-                break;
-        }
+            switch (timePeriod) {
+                case "day":
+                    Log.d("in Day:", " Hello!");
+                    query = "SELECT  MAX(steps) as Steps, strftime('%m/%d', Timestamp) as time FROM " + TABLE_STEPCOUNT + " GROUP BY strftime('%j', Timestamp)";
+                    break;
+                case "hour":
+                    query = "SELECT  MAX(steps) as Steps, strftime('%H', Timestamp) as hour FROM " + TABLE_STEPCOUNT + " GROUP BY strftime('%j-%H', Timestamp)";
+                    break;
+                case "minute":
+                    query = "SELECT  MAX(steps) as Steps, strftime('%H:%M', Timestamp) as hour FROM " + TABLE_STEPCOUNT + " GROUP BY strftime('%j-%H-%M', Timestamp)";
+                    break;
+            }
 
-        ArrayList<Data> stepData = new ArrayList<>();
+            ArrayList<Data> stepData = new ArrayList<>();
 
 
-        SQLiteDatabase db = this.getWritableDatabase();
+            SQLiteDatabase db = this.getWritableDatabase();
 
-        Cursor cursor = db.rawQuery(query, null);
-        cursor.moveToFirst();
-        int value=0;
-        do {
-            Data data = new Data();
-            value = Integer.parseInt(cursor.getString(0));
+            Cursor cursor = db.rawQuery(query, null);
+            cursor.moveToFirst();
+            int value = 0;
+            do {
+                Data data = new Data();
+                value = Integer.parseInt(cursor.getString(0));
 //            Log.d("value:",""+value);
-            data.setData(value);
+                data.setData(value);
 //            Log.d("Time String", "" + cursor.getString(1));
-            data.setTime("" + cursor.getString(1));
-            stepData.add(data);
+                data.setTime("" + cursor.getString(1));
+                stepData.add(data);
 
-        } while (cursor.moveToNext());
+            } while (cursor.moveToNext());
 
-        cursor.close();
-        db.close();
-        return stepData;
-
+            cursor.close();
+            db.close();
+            return stepData;
+        }catch (CursorIndexOutOfBoundsException e){
+            ArrayList<Data> pulseRecord = new ArrayList<>();
+            return pulseRecord;
+        }
     }
 
 
     public ArrayList<Data> getPulse(String timePeriod) {
-        String query = "";
-        switch(timePeriod){
-            case "day":
-                query = "SELECT  AVG(pulse) as pulseAvg, strftime('%m-%d', Timestamp) as hour FROM "+ TABLE_PULSE +" GROUP BY strftime('%j', Timestamp)" ;
-                break;
-            case "hour":
-                query = "SELECT  AVG(pulse) as pulseAvg, strftime('%H', Timestamp) as hour FROM "+ TABLE_PULSE +" GROUP BY strftime('%j-%H', Timestamp)" ;
-                break;
-            case "minute":
-                query = "SELECT  AVG(pulse) as pulseAvg, strftime('%H:%M', Timestamp) as hour FROM "+ TABLE_PULSE +" GROUP BY strftime('%j-%H-%M', Timestamp)" ;
-                break;
-        }
+        try {
+            String query = "";
+            switch (timePeriod) {
+                case "day":
+                    query = "SELECT  AVG(pulse) as pulseAvg, strftime('%m-%d', Timestamp) as hour FROM " + TABLE_PULSE + " GROUP BY strftime('%j', Timestamp)";
+                    break;
+                case "hour":
+                    query = "SELECT  AVG(pulse) as pulseAvg, strftime('%H', Timestamp) as hour FROM " + TABLE_PULSE + " GROUP BY strftime('%j-%H', Timestamp)";
+                    break;
+                case "minute":
+                    query = "SELECT  AVG(pulse) as pulseAvg, strftime('%H:%M', Timestamp) as hour FROM " + TABLE_PULSE + " GROUP BY strftime('%j-%H-%M', Timestamp)";
+                    break;
+            }
 
-        ArrayList<Data> pulseRecord = new ArrayList<>();
+            ArrayList<Data> pulseRecord = new ArrayList<>();
 
 
-        SQLiteDatabase db = this.getWritableDatabase();
+            SQLiteDatabase db = this.getWritableDatabase();
 
-        Cursor cursor = db.rawQuery(query, null);
-        cursor.moveToFirst();
+            Cursor cursor = db.rawQuery(query, null);
+            cursor.moveToFirst();
 
-        do {
-            Data data = new Data();
-            Float value = Float.parseFloat(cursor.getString(0));
-            int avg;
-            avg = Math.round(value);
+            do {
+                Data data = new Data();
+                Float value = Float.parseFloat(cursor.getString(0));
+                int avg;
+                avg = Math.round(value);
 
-            data.setData(avg);
-            data.setTime(cursor.getString(1));
+                data.setData(avg);
+                data.setTime(cursor.getString(1));
 
 //            Log.d("Time String", "" + cursor.getString(1));
-            pulseRecord.add(data);
+                pulseRecord.add(data);
 
-        } while (cursor.moveToNext());
+            } while (cursor.moveToNext());
 
-        cursor.close();
-        db.close();
-        return pulseRecord;
+            cursor.close();
+            db.close();
+            return pulseRecord;
+        }catch (CursorIndexOutOfBoundsException e){
+            ArrayList<Data> pulseRecord = new ArrayList<>();
+            return pulseRecord;
+        }
     }
 
 }
