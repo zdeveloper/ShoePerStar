@@ -31,7 +31,7 @@ public class VibeBluetoothService extends Service implements VibeShoeInterface {
     Database db;
 
 
-    public boolean RIGHT_SHOE_CONNECTED, LEFT_SHOE_CONNECTED;
+    public boolean RIGHT_SHOE_CONNECTED = false, LEFT_SHOE_CONNECTED = false;
 
     public static final int RIGHT_SHOE = 0;
     public static final int LEFT_SHOE = 1;
@@ -302,7 +302,7 @@ public class VibeBluetoothService extends Service implements VibeShoeInterface {
             outStream = leftOutStream;
         }
 
-        Log.d(TAG, "...Send data: " + new String(msg));
+        //Log.d(TAG, "...Send data: " + new String(msg));
 
         try {
             outStream.write(msg);
@@ -313,13 +313,13 @@ public class VibeBluetoothService extends Service implements VibeShoeInterface {
             try {
                 if(shoeCode == LEFT_SHOE) {
                     leftShoeListener.send(msg2);
-                    leftVibeConnection.reconnectVibe();
                     LEFT_SHOE_CONNECTED = false;
+                    leftVibeConnection.reconnectVibe();
                 }
                 else {
                     rightShoeListener.send(msg2);
-                    rightVibeConnection.reconnectVibe();
                     RIGHT_SHOE_CONNECTED = false;
+                    rightVibeConnection.reconnectVibe();
                 }
             } catch (RemoteException e1) {
                 Log.e(TAG, "Error in sending message to handler: " + e1.toString());
@@ -499,8 +499,32 @@ public class VibeBluetoothService extends Service implements VibeShoeInterface {
                     Log.e(TAG, "Fatal Error : unable to close socket during connection failure" + e2.getMessage() + ".");
                 }finally {
                     //try again!
-                    return makeStreamFromDevice(shoe, device);
+                    if(shoe == LEFT_SHOE && !LEFT_SHOE_CONNECTED){
+                        return makeStreamFromDevice(shoe, device);
+                    }
+                    else if(shoe == RIGHT_SHOE && !RIGHT_SHOE_CONNECTED){
+                        return makeStreamFromDevice(shoe, device);
+                    }
+                    else if(shoe == LEFT_SHOE){
+                        return leftOutStream;
+                    } else if(shoe == RIGHT_SHOE){
+                        return rightOutStream;
+                    }
                 }
+            }
+            //single connection to handler
+            Message msg= Message.obtain(null, VibeShoeHandler.MSG_SHOE_CONNECTED);
+            try {
+                if(shoe == LEFT_SHOE) {
+                    LEFT_SHOE_CONNECTED = true;
+                    leftShoeListener.send(msg);
+                }
+                else {
+                    RIGHT_SHOE_CONNECTED = true;
+                    rightShoeListener.send(msg);
+                }
+            } catch (RemoteException e1) {
+                Log.e(TAG, "Error in sending message to handler: " + e1.toString());
             }
 
             try {
@@ -528,20 +552,7 @@ public class VibeBluetoothService extends Service implements VibeShoeInterface {
             }).start();
 
 
-            //single connection to handler
-            Message msg= Message.obtain(null, VibeShoeHandler.MSG_SHOE_CONNECTED);
-            try {
-                if(shoe == LEFT_SHOE) {
-                    leftShoeListener.send(msg);
-                    LEFT_SHOE_CONNECTED = true;
-                }
-                else {
-                    rightShoeListener.send(msg);
-                    RIGHT_SHOE_CONNECTED = true;
-                }
-            } catch (RemoteException e1) {
-                Log.e(TAG, "Error in sending message to handler: " + e1.toString());
-            }
+
 
             return outStream;
         }
