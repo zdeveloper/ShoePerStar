@@ -34,6 +34,7 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Locale;
 
 public class NavigationUpdateService extends Service implements LocationListener {
@@ -162,25 +163,34 @@ public class NavigationUpdateService extends Service implements LocationListener
 
         try {
             // Check for change of turn
-            NavigationStep localCurrentStep = route.getCurrentStep(currentLocation);
-            if (localCurrentStep != null && !currentStep.equals(localCurrentStep)) {
-                currentStep = localCurrentStep;
-                sendMessage(NavigationUpdateHandler.NEXT_TURN, localCurrentStep);
+            NavigationStep newCurrentStep = route.getCurrentStep(currentLocation);
+            if (newCurrentStep != null && !currentStep.equals(newCurrentStep)) {
+                if (!newCurrentStep.isPassed()) {
+                    newCurrentStep.setPassed(true);
+                    currentStep = newCurrentStep;
+                    sendMessage(NavigationUpdateHandler.NEXT_TURN, currentStep);
+                }
             }
 
-            // check for nearing end of turn
-            float distanceUntilTurn = currentStep.distanceUntilTurn(currentLocation);
-            NavigationStep nextStep;
-            if (distanceUntilTurn < NEARING_TURN_DISTANCE) {
-//            if (true) {
-                nextStep = route.getNextStep(currentStep);
-                sendMessage(NavigationUpdateHandler.NEARING_END_OF_TURN, nextStep);
-            }
+//            // check for nearing end of turn
+//            float distanceUntilTurn = currentStep.distanceUntilTurn(currentLocation);
+//            NavigationStep nextStep;
+//            if (distanceUntilTurn < NEARING_TURN_DISTANCE) {
+////            if (true) {
+//                nextStep = route.getNextStep(currentStep);
+//                if (!currentStep.isPassed()) {
+//                    currentStep.setPassed(true);
+//                    sendMessage(NavigationUpdateHandler.NEARING_END_OF_TURN, nextStep);
+//                }
+//            }
 
 //            sendMessage(NavigationUpdateHandler.MESSAGE, "Distance until turn: " + distanceUntilTurn + ", " + nextStep.getManeuver().toString());
 
+
             // Send the next point along the route
-            sendMessage(NavigationUpdateHandler.NEXT_POINT, currentStep.getNextPoint(currentLocation));
+            sendMessage(NavigationUpdateHandler.NEXT_POINT,
+                    Arrays.asList(currentStep.getClosestPoint(currentLocation),
+                            currentStep.getNextPoint(currentLocation)));
 
         } catch (Exception e) {
             Log.d("ERR", "OnLocationChanged", e);
@@ -254,7 +264,6 @@ public class NavigationUpdateService extends Service implements LocationListener
         // initialize location manager
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 500, 1, this);
-        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 500, 1, this);
 
         currentStep = route.getFirstStep();
         mode = MODE.NAVIGATING;

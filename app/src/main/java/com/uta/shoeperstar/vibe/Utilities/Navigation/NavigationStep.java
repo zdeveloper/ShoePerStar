@@ -22,6 +22,8 @@ public class NavigationStep {
     private String instruction;
     private ArrayList<LatLng> path;
     private MANEUVERS maneuver = MANEUVERS.NONE;
+    private boolean passed;
+
     public NavigationStep(JSONObject step) throws JSONException {
         this.distance = ((JSONObject) step.get("distance")).getInt("value");
         this.duration = ((JSONObject) step.get("duration")).getInt("value");
@@ -128,6 +130,14 @@ public class NavigationStep {
 
     public boolean isOnRoute(LatLng currentLocation) {
         return PolyUtil.isLocationOnPath(currentLocation, path, false, DISTANCE_FROM_PATH_TOLERANCE);
+    }
+
+    public boolean isPassed() {
+        return passed;
+    }
+
+    public void setPassed(boolean passed) {
+        this.passed = passed;
     }
 
     public enum MANEUVERS {LEFT, RIGHT, NONE}

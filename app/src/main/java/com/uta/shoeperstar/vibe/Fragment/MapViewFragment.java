@@ -44,17 +44,20 @@ import com.uta.shoeperstar.vibe.R;
 import com.uta.shoeperstar.vibe.Utilities.Navigation.NavigationRoute;
 import com.uta.shoeperstar.vibe.Utilities.Navigation.NavigationStep;
 import com.uta.shoeperstar.vibe.Utilities.Navigation.NavigationUpdateService;
+import com.uta.shoeperstar.vibe.Utilities.VibeBluetooth.VibeShoes;
 
 import java.util.ArrayList;
+import java.util.List;
 
 
 public class MapViewFragment extends Fragment implements OnMapReadyCallback,
         GoogleMap.OnMapLongClickListener, GoogleMap.OnInfoWindowClickListener {
 
     public static final int TURN_IMAGE_COUNT = 5;
-    public static NavigationUpdateService navigationService;
     private static View view;
     private static GoogleMap googleMap;
+    private NavigationUpdateService navigationService;
+    private VibeShoes vibeShoes;
     private MODE mode;
     private Marker searchResultMarker;
     private Location lastKnownLocation;
@@ -258,6 +261,8 @@ public class MapViewFragment extends Fragment implements OnMapReadyCallback,
         initializeMapSearchBar();
         // TODO Add more map UI's such as search bar, start navigation button, etc.
         initializeNavigationUpdateService();
+
+        vibeShoes = VibeShoes.getInstance(getActivity());
     }
 
     private void initializeNavigationUpdateService() {
@@ -462,25 +467,56 @@ public class MapViewFragment extends Fragment implements OnMapReadyCallback,
         @Override
         public void onNextTurn(NavigationStep nextTurn) {
 
-            try {
-                // Select the right turn image
-                int turnImageResourceId = getTurnImageResourceId(nextTurn.getManeuver());
+            if (nextTurn != null && !nextTurn.isPassed()) {
+                try {
+                    // Select the turn image
+                    int turnImageResourceId = getTurnImageResourceId(nextTurn.getManeuver());
 
-                Marker turnMarker = googleMap.addMarker(new MarkerOptions()
-                        .position(nextTurn.getStartLocation())
-                        .title(nextTurn.getInstruction())
-                        .snippet(nextTurn.getManeuver().toString())
-                        .icon(BitmapDescriptorFactory.fromBitmap(resizeBitmap(turnImageResourceId, 2))));
+                    Marker turnMarker = googleMap.addMarker(new MarkerOptions()
+                            .position(nextTurn.getStartLocation())
+                            .title(nextTurn.getInstruction())
+                            .snippet(nextTurn.getManeuver().toString())
+                            .icon(BitmapDescriptorFactory.fromBitmap(resizeBitmap(turnImageResourceId, 2))));
 
-                turnMarker.showInfoWindow();
-            } catch (Exception e) {
-                Log.d("err", "nextTurn is null " + (nextTurn == null), e);
+                    turnMarker.showInfoWindow();
+                } catch (Exception e) {
+                    Log.d("err", "nextTurn is null " + (nextTurn == null), e);
+                }
+            }
+
+
+
+            if (vibeShoes == null) {
+                Toast.makeText(getActivity(), "Something wrong with vibeShoes", Toast.LENGTH_SHORT);
+                return;
+            }
+
+            if (nextTurn.getManeuver() == NavigationStep.MANEUVERS.LEFT) {
+                Toast.makeText(getActivity(), "Nearing left turn, vibrated", Toast.LENGTH_SHORT);
+                vibeShoes.sendVibrationCommand(VibeShoes.LEFT_SHOE, 2, 100, 5);
+
+            } else if (nextTurn.getManeuver() == NavigationStep.MANEUVERS.LEFT) {
+                Toast.makeText(getActivity(), "Nearing right turn, vibrated", Toast.LENGTH_SHORT);
+                vibeShoes.sendVibrationCommand(VibeShoes.RIGHT_SHOE, 2, 100, 5);
+
+            } else {
             }
         }
 
         @Override
         public void onEndOfTurn(NavigationStep nextTurn) {
+            if (nextTurn == null || vibeShoes == null) {
+                return;
+            }
 
+            if (nextTurn.getManeuver() == NavigationStep.MANEUVERS.LEFT) {
+                vibeShoes.sendVibrationCommand(VibeShoes.LEFT_SHOE, 2, 100, 5);
+                Toast.makeText(getActivity(), "Nearing left turn, vibrated", Toast.LENGTH_SHORT);
+            } else if (nextTurn.getManeuver() == NavigationStep.MANEUVERS.LEFT) {
+                vibeShoes.sendVibrationCommand(VibeShoes.RIGHT_SHOE, 2, 100, 5);
+                Toast.makeText(getActivity(), "Nearing right turn, vibrated", Toast.LENGTH_SHORT);
+            } else {
+            }
         }
 
         @Override
@@ -489,10 +525,10 @@ public class MapViewFragment extends Fragment implements OnMapReadyCallback,
         }
 
         @Override
-        public void onNextPoint(LatLng nextPoint) {
+        public void onNextPoint(List<LatLng> nextPoints) {
             float distance[] = new float[2];
-            Location.distanceBetween(lastKnownLocation.getLatitude(), lastKnownLocation.getLongitude(),
-                    nextPoint.latitude, nextPoint.longitude, distance);
+            Location.distanceBetween(nextPoints.get(0).latitude, nextPoints.get(0).latitude,
+                    nextPoints.get(1).latitude, nextPoints.get(1).longitude, distance);
 
             CameraPosition cameraPosition = new CameraPosition.Builder()
                     .target(                    // Sets the center of the map to Mountain View

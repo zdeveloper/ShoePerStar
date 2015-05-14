@@ -6,6 +6,8 @@ import android.os.Message;
 
 import com.google.android.gms.maps.model.LatLng;
 
+import java.util.List;
+
 /**
  * Created by Jonny on 5/9/15.
  */
@@ -43,7 +45,7 @@ public abstract class NavigationUpdateHandler extends Handler {
                 onEndNavigation();
                 break;
             case NEXT_POINT:
-                onNextPoint((LatLng) msg.obj);
+                onNextPoint((List<LatLng>) msg.obj);
                 break;
             case MESSAGE:
             default:
@@ -65,7 +67,7 @@ public abstract class NavigationUpdateHandler extends Handler {
 
     public abstract void onRouteRecalculate();
 
-    public abstract void onNextPoint(LatLng toPoint);
+    public abstract void onNextPoint(List<LatLng> toPoint);
 
     public abstract void onEndNavigation();
 
