@@ -1,11 +1,9 @@
 package com.uta.shoeperstar.vibe.Utilities.Navigation;
 
 import android.location.Location;
-import android.util.Log;
 
 import com.google.android.gms.maps.model.LatLng;
 import com.google.maps.android.PolyUtil;
-import com.uta.shoeperstar.vibe.Fragment.MapViewFragment;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -17,12 +15,13 @@ import java.util.ArrayList;
  */
 public class NavigationStep {
 
+    public static final int DISTANCE_FROM_PATH_TOLERANCE = 10;
     private float distance;
     private float duration;
     private LatLng start, end;
     private String instruction;
     private ArrayList<LatLng> path;
-    private MANEUVERS maneuver;
+    private MANEUVERS maneuver = MANEUVERS.NONE;
     public NavigationStep(JSONObject step) throws JSONException {
         this.distance = ((JSONObject) step.get("distance")).getInt("value");
         this.duration = ((JSONObject) step.get("duration")).getInt("value");
@@ -35,32 +34,24 @@ public class NavigationStep {
 
         this.instruction = step.getString("html_instructions");
 
-        this.path = MapViewFragment.decodePolyline(((JSONObject) step.get("polyline")).getString("points"));
+        this.path = NavigationUpdateService.decodePolyline(((JSONObject) step.get("polyline")).getString("points"));
 
         // Step may not always have maneuver
         try {
             String maneuverStr = step.getString("maneuver");
-            switch (maneuverStr) {
-                case "turn-left":
-                    maneuver = MANEUVERS.TURN_LEFT;
-                    break;
-                case "turn-right":
-                    maneuver = MANEUVERS.TURN_RIGHT;
-                    break;
-                case "turn-slight_left":
-                    maneuver = MANEUVERS.TURN_SLIGHT_LEFT;
-                    break;
-                case "turn-slight_right":
-                    maneuver = MANEUVERS.TURN_SLIGHT_RIGHT;
-                    break;
-                default:
-                    Log.d("NEW MANEUVER", maneuverStr);
-                    maneuver = MANEUVERS.NONE;
-                    break;
+
+            if (maneuverStr.toLowerCase().contains("left")) {
+                maneuver = MANEUVERS.LEFT;
+            } else if (maneuverStr.toLowerCase().contains("right")) {
+                maneuver = MANEUVERS.RIGHT;
             }
         } catch (Exception e) {
             maneuver = MANEUVERS.NONE;
         }
+    }
+
+    public ArrayList<LatLng> getPath() {
+        return path;
     }
 
     public float getDistance() {
@@ -97,50 +88,49 @@ public class NavigationStep {
     /**
      * This function return the next point in path, given a current position that is along the path
      *
-     * @param currentPoint
+     * @param currentLocation
      * @return return the point that is closer to the end of turn (which should be the next point along the path)
      */
-    public LatLng getNextPoint(LatLng currentPoint) {
-        LatLng point1 = start, point2 = start;
-        float dist1 = 99999999, dist2 = 99999999;
+    public LatLng getNextPoint(LatLng currentLocation) {
+        int closestPointIndex = getClosestPointIndex(currentLocation);
 
-        // Pick two points closest to the currentPoint
-        for (LatLng pointAlongPath : path) {
-            float distance[] = new float[1];
-            Location.distanceBetween(currentPoint.latitude, currentPoint.longitude,
-                    pointAlongPath.latitude, pointAlongPath.longitude, distance);
+        // Closest point is at the end of the path
+        if ((closestPointIndex + 1) >= path.size()) {
+            return end;
+        } else {
+            return path.get(closestPointIndex + 1);
+        }
+    }
 
-            if (distance[0] < dist1) {
-                point2 = point1;
-                dist2 = dist1;
+    public LatLng getClosestPoint(LatLng currentLocation) {
+        int closestPointIndex = getClosestPointIndex(currentLocation);
 
-                point1 = pointAlongPath;
-                dist1 = distance[0];
+        return path.get(closestPointIndex);
+    }
+
+    private int getClosestPointIndex(LatLng currentLocation) {
+        float distance = 99999999;
+        int closestPointIndexSoFar = 0;
+
+        for (int i = 0; i < path.size(); i++) {
+            float result[] = new float[1];
+            Location.distanceBetween(currentLocation.latitude, currentLocation.longitude
+                    , path.get(i).latitude, path.get(i).longitude, result);
+
+            if (result[0] < distance) {
+                closestPointIndexSoFar = i;
+                distance = result[0];
             }
         }
 
-        // return the point that is closer to the end of turn (which should be the next point along the path)
-        float distBetween1andEnd[] = new float[1];
-        Location.distanceBetween(point1.latitude, point1.longitude,
-                end.latitude, end.longitude, distBetween1andEnd);
-
-        float distBetween2andEnd[] = new float[1];
-        Location.distanceBetween(point2.latitude, point2.longitude,
-                end.latitude, end.longitude, distBetween2andEnd);
-
-        if (distBetween1andEnd[0] < distBetween2andEnd[0]) {
-            return point1;
-        } else {
-            return point2;
-        }
-
+        return closestPointIndexSoFar;
     }
 
-    public boolean isOnRoute(LatLng point) {
-        return PolyUtil.isLocationOnPath(point, path, true, 10);
+    public boolean isOnRoute(LatLng currentLocation) {
+        return PolyUtil.isLocationOnPath(currentLocation, path, false, DISTANCE_FROM_PATH_TOLERANCE);
     }
 
-    public enum MANEUVERS {TURN_LEFT, TURN_RIGHT, TURN_SLIGHT_LEFT, TURN_SLIGHT_RIGHT, NONE}
+    public enum MANEUVERS {LEFT, RIGHT, NONE}
 
 
 }

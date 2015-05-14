@@ -31,7 +31,8 @@ public abstract class NavigationUpdateHandler extends Handler {
                 onRouteReceived((NavigationRoute) msg.obj);
                 break;
             case NEXT_TURN:
-                onNewTurn((NavigationStep) msg.obj);
+                onNextTurn((NavigationStep) msg.obj);
+                break;
             case NEARING_END_OF_TURN:
                 onEndOfTurn((NavigationStep) msg.obj);
                 break;
@@ -58,7 +59,7 @@ public abstract class NavigationUpdateHandler extends Handler {
      */
     public abstract void onRouteReceived(NavigationRoute route);
 
-    public abstract void onNewTurn(NavigationStep turn);
+    public abstract void onNextTurn(NavigationStep turn);
 
     public abstract void onEndOfTurn(NavigationStep turn);
 
