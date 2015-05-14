@@ -13,6 +13,9 @@ import android.os.RemoteException;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.uta.shoeperstar.vibe.Utilities.Data;
+import com.uta.shoeperstar.vibe.Utilities.Database;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -23,6 +26,12 @@ import java.util.UUID;
  * Created by Zedd on 5/4/2015.
  */
 public class VibeBluetoothService extends Service implements VibeShoeInterface {
+
+
+    Database db;
+
+
+    public boolean RIGHT_SHOE_CONNECTED, LEFT_SHOE_CONNECTED;
 
     public static final int RIGHT_SHOE = 0;
     public static final int LEFT_SHOE = 1;
@@ -76,6 +85,10 @@ public class VibeBluetoothService extends Service implements VibeShoeInterface {
 
 
     void startService(){
+
+        db= new Database(getApplicationContext(), null, null, 1);
+
+
         Log.d(TAG, "VibeBluetoothService is alive");
 
 
@@ -184,6 +197,11 @@ public class VibeBluetoothService extends Service implements VibeShoeInterface {
 
                                     int steps = Integer.parseInt(msgArray[1]);
 
+                                    //add data to database
+                                    Data data = new Data(steps);
+                                    db.addStepCount(data);
+
+
                                     //publish the results
                                     publishMessage(shoe, VibeShoeHandler.MSG_STEPS, steps);
                                     //update local values
@@ -199,8 +217,14 @@ public class VibeBluetoothService extends Service implements VibeShoeInterface {
                                     if (msgArray[1].equals("A")) {     //actual pulse
 
                                         int pulses = Integer.parseInt(msgArray[2]);
+
+
+                                        //add data to database
+                                        Data data = new Data(pulses);
+                                        db.addPulse(data);
+
                                         //publish the results
-                                        publishMessage(shoe, VibeShoeHandler.MSG_PULSE_ACTUAL, pulses);
+                                        if(shoe == LEFT_SHOE) publishMessage(shoe, VibeShoeHandler.MSG_PULSE_ACTUAL, pulses);
                                         //update local values
                                         if (shoe == LEFT_SHOE) leftBpmActual = pulses;
                                         else rightBpmActual = pulses;
@@ -209,7 +233,7 @@ public class VibeBluetoothService extends Service implements VibeShoeInterface {
 
                                         int pulses = Integer.parseInt(msgArray[2]);
                                         //publish the results
-                                        publishMessage(shoe, VibeShoeHandler.MSG_PULSE_ESTIMATED, pulses);
+                                        if(shoe == LEFT_SHOE) publishMessage(shoe, VibeShoeHandler.MSG_PULSE_ESTIMATED, pulses);
                                         //update local values
                                         if (shoe == LEFT_SHOE) leftBpmEstimated = pulses;
                                         else rightBpmEstimated = pulses;
@@ -248,6 +272,22 @@ public class VibeBluetoothService extends Service implements VibeShoeInterface {
         } catch (IOException e) {
             String errorMsg = "Error - Exception occurred during write:" + e.getMessage();
             Log.e(TAG, errorMsg);
+
+            Message msg= Message.obtain(null, VibeShoeHandler.MSG_SHOE_DISCONNECTED);
+            try {
+                if(shoeCode == LEFT_SHOE) {
+                    leftShoeListener.send(msg);
+                    leftVibeConnection.reconnectVibe();
+                    LEFT_SHOE_CONNECTED = false;
+                }
+                else {
+                    rightShoeListener.send(msg);
+                    rightVibeConnection.reconnectVibe();
+                    RIGHT_SHOE_CONNECTED = false;
+                }
+            } catch (RemoteException e1) {
+                Log.e(TAG, "Error in sending message to handler: " + e1.toString());
+            }
         }
     }
 
@@ -266,6 +306,21 @@ public class VibeBluetoothService extends Service implements VibeShoeInterface {
         } catch (IOException e) {
             String errorMsg = "Error - Exception occurred during write:" + e.getMessage();
             Log.e(TAG, errorMsg);
+            Message msg2= Message.obtain(null, VibeShoeHandler.MSG_SHOE_DISCONNECTED);
+            try {
+                if(shoeCode == LEFT_SHOE) {
+                    leftShoeListener.send(msg2);
+                    leftVibeConnection.reconnectVibe();
+                    LEFT_SHOE_CONNECTED = false;
+                }
+                else {
+                    rightShoeListener.send(msg2);
+                    rightVibeConnection.reconnectVibe();
+                    RIGHT_SHOE_CONNECTED = false;
+                }
+            } catch (RemoteException e1) {
+                Log.e(TAG, "Error in sending message to handler: " + e1.toString());
+            }
         }
     }
 
@@ -372,6 +427,12 @@ public class VibeBluetoothService extends Service implements VibeShoeInterface {
         sendData(shoe,command);
     }
 
+    @Override
+    public boolean isShoeConnected(int shoe) {
+        if(shoe == LEFT_SHOE) return LEFT_SHOE_CONNECTED;
+        else return RIGHT_SHOE_CONNECTED;
+    }
+
 
     public class BluetoothServiceBinder extends Binder{
         /** This service returns the service **/
@@ -462,6 +523,22 @@ public class VibeBluetoothService extends Service implements VibeShoeInterface {
                     }
                 }
             }).start();
+
+
+            //single connection to handler
+            Message msg= Message.obtain(null, VibeShoeHandler.MSG_SHOE_CONNECTED);
+            try {
+                if(shoe == LEFT_SHOE) {
+                    leftShoeListener.send(msg);
+                    LEFT_SHOE_CONNECTED = true;
+                }
+                else {
+                    rightShoeListener.send(msg);
+                    RIGHT_SHOE_CONNECTED = true;
+                }
+            } catch (RemoteException e1) {
+                Log.e(TAG, "Error in sending message to handler: " + e1.toString());
+            }
 
             return outStream;
         }

@@ -78,4 +78,6 @@ public interface VibeShoeInterface {
      */
     void enablePulse(final int shoe, final boolean val);
 
+
+    boolean isShoeConnected(final int shoe);
 }
