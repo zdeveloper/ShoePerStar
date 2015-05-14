@@ -482,7 +482,7 @@ public class MapViewFragment extends Fragment implements OnMapReadyCallback,
                             .position(nextTurn.getStartLocation())
                             .title(nextTurn.getInstruction())
                             .snippet(nextTurn.getManeuver().toString())
-                            .icon(BitmapDescriptorFactory.fromBitmap(resizeBitmap(turnImageResourceId, 2))));
+                            .icon(BitmapDescriptorFactory.fromBitmap(resizeBitmap(turnImageResourceId, 3))));
 
                     turnMarker.showInfoWindow();
                 } catch (Exception e) {
@@ -518,12 +518,12 @@ public class MapViewFragment extends Fragment implements OnMapReadyCallback,
         @Override
         public void onNextPoint(List<LatLng> nextPoints) {
             float distance[] = new float[2];
-            Location.distanceBetween(nextPoints.get(0).latitude, nextPoints.get(0).longitude,
+            Location.distanceBetween(lastKnownLocation.getLatitude(), lastKnownLocation.getLongitude(),
                     nextPoints.get(1).latitude, nextPoints.get(1).longitude, distance);
 
             CameraPosition cameraPosition = new CameraPosition.Builder()
                     .target(                    // Sets the center of the map to Mountain View
-                            nextPoints.get(0))
+                            new LatLng(lastKnownLocation.getLatitude(), lastKnownLocation.getLongitude()))
                     .zoom(20)                   // Sets the zoom
                     .bearing(distance[1])       // Sets the orientation of the camera
                     .tilt(60)                   // Sets the tilt of the camera to 30 degrees
