@@ -6,6 +6,8 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.location.Address;
 import android.location.Location;
@@ -14,6 +16,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.Looper;
+import android.text.Html;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -48,14 +51,75 @@ import java.util.ArrayList;
 public class MapViewFragment extends Fragment implements OnMapReadyCallback,
         GoogleMap.OnMapLongClickListener, GoogleMap.OnInfoWindowClickListener {
 
+    public static final int TURN_IMAGE_COUNT = 5;
     public static NavigationUpdateService navigationService;
     private static View view;
     private static GoogleMap googleMap;
+    private MODE mode;
     private Marker searchResultMarker;
     private Location lastKnownLocation;
     private EditText mapSearchBox;
     // Marker info window stuff
     private boolean cameraFocusedToMarker;
+    private GoogleMap.InfoWindowAdapter placeMarkerInfoWindow = new GoogleMap.InfoWindowAdapter() {
+
+        // Use default InfoWindow frame
+        @Override
+        public View getInfoWindow(Marker arg0) {
+            return null;
+        }
+
+        // Defines the contents of the InfoWindow
+        @Override
+        public View getInfoContents(Marker marker) {
+
+            // Getting view from the layout file info_window layout
+            View v = getActivity().getLayoutInflater().inflate(R.layout.marker_info_window, null);
+
+            // Getting the position from the marker
+            final LatLng latLng = marker.getPosition();
+
+            Button navigateButton = (Button) v.findViewById(R.id.navigate_button);
+            navigateButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    searchNavigationRoute(latLng.latitude + ", " + latLng.longitude);
+                }
+            });
+
+            return v;
+        }
+    };
+    private GoogleMap.InfoWindowAdapter navigationInfoWindow = new GoogleMap.InfoWindowAdapter() {
+
+        // Use default InfoWindow frame
+        @Override
+        public View getInfoWindow(Marker arg0) {
+            return null;
+        }
+
+        // Defines the contents of the InfoWindow
+        @Override
+        public View getInfoContents(Marker marker) {
+
+            // Getting view from the layout file info_window layout
+            View v = getActivity().getLayoutInflater().inflate(R.layout.navigation_info_window, null);
+
+            // Getting the position from the marker
+            final LatLng markerPosition = marker.getPosition();
+            float result[] = new float[1];
+            Location.distanceBetween(getLastKnownLocation().getLatitude(), getLastKnownLocation().getLongitude()
+                    , markerPosition.latitude, markerPosition.longitude, result);
+
+            TextView instructionTextView = (TextView) v.findViewById(R.id.nav_info_instruction);
+//            TextView distanceTextView = (TextView) v.findViewById(R.id.nav_info_distance);
+
+            instructionTextView.setText(Html.fromHtml(marker.getTitle()));
+//            distanceTextView.setText("" + result[0]);
+
+            return v;
+        }
+    };
     private ServiceConnection navServiceConnection = new ServiceConnection() {
 
         @Override
@@ -69,42 +133,13 @@ public class MapViewFragment extends Fragment implements OnMapReadyCallback,
         }
     };
 
+
     public MapViewFragment() {
         // Required empty public constructor
     }
 
-    public static ArrayList<LatLng> decodePolyline(String encoded) {
-
-        ArrayList<LatLng> poly = new ArrayList<>();
-        int index = 0, len = encoded.length();
-        int lat = 0, lng = 0;
-
-        while (index < len) {
-            int b, shift = 0, result = 0;
-            do {
-                b = encoded.charAt(index++) - 63;
-                result |= (b & 0x1f) << shift;
-                shift += 5;
-            } while (b >= 0x20);
-            int dlat = ((result & 1) != 0 ? ~(result >> 1) : (result >> 1));
-            lat += dlat;
-
-            shift = 0;
-            result = 0;
-            do {
-                b = encoded.charAt(index++) - 63;
-                result |= (b & 0x1f) << shift;
-                shift += 5;
-            } while (b >= 0x20);
-            int dlng = ((result & 1) != 0 ? ~(result >> 1) : (result >> 1));
-            lng += dlng;
-
-            LatLng p = new LatLng((((double) lat / 1E5)),
-                    (((double) lng / 1E5)));
-            poly.add(p);
-        }
-
-        return poly;
+    public Location getLastKnownLocation() {
+        return lastKnownLocation;
     }
 
     private void initializeMapSearchBar() {
@@ -145,6 +180,8 @@ public class MapViewFragment extends Fragment implements OnMapReadyCallback,
                 googleMap.animateCamera(CameraUpdateFactory.newLatLng(addressLatLng));
                 googleMap.clear();
 
+                googleMap.setInfoWindowAdapter(placeMarkerInfoWindow);
+
                 searchResultMarker = googleMap.addMarker(new MarkerOptions()
                         .position(addressLatLng)
                         .title(address.getFeatureName())
@@ -160,17 +197,19 @@ public class MapViewFragment extends Fragment implements OnMapReadyCallback,
         getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                ArrayList<LatLng> points;
+                ArrayList<LatLng> points = new ArrayList<>();
                 PolylineOptions polyLineOptions = new PolylineOptions();
                 LatLngBounds.Builder bounds = new LatLngBounds.Builder();
                 bounds.include(new LatLng(lastKnownLocation.getLatitude(), lastKnownLocation.getLongitude()));
 
                 try {
-                    points = decodePolyline(navigationRoute.getPolyline());
+                    for (NavigationStep step : navigationRoute.getSteps()) {
+                        points.addAll(step.getPath());
 
-                    // Include points of polyline to zoom the path
-                    if (points.size() > 0) {
-                        bounds.include(points.get(points.size() - 1));
+                        // Include points of polyline to zoom the path
+                        if (points.size() > 0) {
+                            bounds.include(points.get(points.size() - 1));
+                        }
                     }
 
                     polyLineOptions.addAll(points);
@@ -239,10 +278,11 @@ public class MapViewFragment extends Fragment implements OnMapReadyCallback,
 
     }
 
-
     @Override
     public void onMapReady(final GoogleMap map) {
         googleMap = map;
+
+        mode = MODE.MAP;
 
         googleMap.setOnMyLocationChangeListener(new GoogleMap.OnMyLocationChangeListener() {
             @Override
@@ -258,35 +298,7 @@ public class MapViewFragment extends Fragment implements OnMapReadyCallback,
         });
 
         // Setting a custom info window adapter for the google map
-        googleMap.setInfoWindowAdapter(new GoogleMap.InfoWindowAdapter() {
-
-            // Use default InfoWindow frame
-            @Override
-            public View getInfoWindow(Marker arg0) {
-                return null;
-            }
-
-            // Defines the contents of the InfoWindow
-            @Override
-            public View getInfoContents(Marker marker) {
-
-                // Getting view from the layout file info_window layout
-                View v = getActivity().getLayoutInflater().inflate(R.layout.info_window, null);
-
-                // Getting the position from the marker
-                final LatLng latLng = marker.getPosition();
-
-                Button navigateButton = (Button) v.findViewById(R.id.navigate_button);
-                navigateButton.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        searchNavigationRoute(latLng.latitude + ", " + latLng.longitude);
-                    }
-                });
-
-                return v;
-            }
-        });
+        googleMap.setInfoWindowAdapter(placeMarkerInfoWindow);
 
         googleMap.setIndoorEnabled(true);
         googleMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
@@ -298,6 +310,10 @@ public class MapViewFragment extends Fragment implements OnMapReadyCallback,
 
     @Override
     public void onMapLongClick(LatLng latLng) {
+        if (mode == MODE.NAVIGATING) {
+            stopNavigation();
+        }
+
         new searchAddressAsync(latLng.latitude + "," + latLng.longitude).execute();
     }
 
@@ -311,6 +327,88 @@ public class MapViewFragment extends Fragment implements OnMapReadyCallback,
     private void searchNavigationRoute(String toSearch) {
         navigationService.searchNavigationRoute(lastKnownLocation, toSearch);
     }
+
+    public void startNavigation() {
+        mode = MODE.NAVIGATING;
+
+        googleMap.setInfoWindowAdapter(navigationInfoWindow);
+
+        navigationService.startNavigation();
+    }
+
+    public void stopNavigation() {
+        if (mode == MODE.MAP) {
+            return;
+        }
+
+        mode = MODE.MAP;
+
+        navigationService.stopNavigation();
+
+        googleMap.setInfoWindowAdapter(placeMarkerInfoWindow);
+    }
+
+    public int getTurnImageResourceId(NavigationStep.MANEUVERS maneuver) {
+        int turnImageResourceId;
+        int randomImageNumber = (int) Math.ceil(Math.random() * TURN_IMAGE_COUNT);
+
+        if (maneuver == NavigationStep.MANEUVERS.LEFT) {
+            switch (randomImageNumber) {
+                case 1:
+                    turnImageResourceId = R.drawable.nav_turn_left1;
+                    break;
+                case 2:
+                    turnImageResourceId = R.drawable.nav_turn_left2;
+                    break;
+                case 3:
+                    turnImageResourceId = R.drawable.nav_turn_left3;
+                    break;
+                case 4:
+                    turnImageResourceId = R.drawable.nav_turn_left4;
+                    break;
+                case 5:
+                    turnImageResourceId = R.drawable.nav_turn_left5;
+                    break;
+                default:
+                    turnImageResourceId = R.drawable.nav_turn_left1;
+                    break;
+            }
+
+        } else if (maneuver == NavigationStep.MANEUVERS.RIGHT) {
+            switch (randomImageNumber) {
+                case 1:
+                    turnImageResourceId = R.drawable.nav_turn_right1;
+                    break;
+                case 2:
+                    turnImageResourceId = R.drawable.nav_turn_right2;
+                    break;
+                case 3:
+                    turnImageResourceId = R.drawable.nav_turn_right3;
+                    break;
+                case 4:
+                    turnImageResourceId = R.drawable.nav_turn_right4;
+                    break;
+                case 5:
+                    turnImageResourceId = R.drawable.nav_turn_right5;
+                    break;
+                default:
+                    turnImageResourceId = R.drawable.nav_turn_right1;
+                    break;
+            }
+        } else {
+            turnImageResourceId = R.drawable.rightshoegreen;
+        }
+        return turnImageResourceId;
+    }
+
+    private Bitmap resizeBitmap(int id, int lessSizeFactor) {
+        Bitmap bm = BitmapFactory.decodeResource(getResources(), id);
+        Bitmap bhalfsize = Bitmap.createScaledBitmap(bm, bm.getWidth() / lessSizeFactor, bm.getHeight() / lessSizeFactor, false);
+
+        return bhalfsize;
+    }
+
+    public enum MODE {MAP, NAVIGATING}
 
     private class searchAddressAsync extends AsyncTask<Void, Address, Address> {
         private String toSearch;
@@ -358,16 +456,30 @@ public class MapViewFragment extends Fragment implements OnMapReadyCallback,
         @Override
         public void onRouteReceived(NavigationRoute route) {
             drawNavigationRoute(route);
-            navigationService.startNavigation();
+            startNavigation();
         }
 
         @Override
-        public void onNewTurn(NavigationStep turn) {
+        public void onNextTurn(NavigationStep nextTurn) {
 
+            try {
+                // Select the right turn image
+                int turnImageResourceId = getTurnImageResourceId(nextTurn.getManeuver());
+
+                Marker turnMarker = googleMap.addMarker(new MarkerOptions()
+                        .position(nextTurn.getStartLocation())
+                        .title(nextTurn.getInstruction())
+                        .snippet(nextTurn.getManeuver().toString())
+                        .icon(BitmapDescriptorFactory.fromBitmap(resizeBitmap(turnImageResourceId, 2))));
+
+                turnMarker.showInfoWindow();
+            } catch (Exception e) {
+                Log.d("err", "nextTurn is null " + (nextTurn == null), e);
+            }
         }
 
         @Override
-        public void onEndOfTurn(NavigationStep turn) {
+        public void onEndOfTurn(NavigationStep nextTurn) {
 
         }
 
@@ -377,18 +489,18 @@ public class MapViewFragment extends Fragment implements OnMapReadyCallback,
         }
 
         @Override
-        public void onNextPoint(LatLng toPoint) {
+        public void onNextPoint(LatLng nextPoint) {
             float distance[] = new float[2];
             Location.distanceBetween(lastKnownLocation.getLatitude(), lastKnownLocation.getLongitude(),
-                    toPoint.latitude, toPoint.longitude, distance);
+                    nextPoint.latitude, nextPoint.longitude, distance);
 
             CameraPosition cameraPosition = new CameraPosition.Builder()
                     .target(                    // Sets the center of the map to Mountain View
                             new LatLng(lastKnownLocation.getLatitude(),
                                     lastKnownLocation.getLongitude()))
                     .zoom(20)                   // Sets the zoom
-                    .bearing(distance[1])       // Sets the orientation of the camera to east
-                    .tilt(30)                   // Sets the tilt of the camera to 30 degrees
+                    .bearing(distance[1])       // Sets the orientation of the camera
+                    .tilt(60)                   // Sets the tilt of the camera to 30 degrees
                     .build();                   // Creates a CameraPosition from the builder
 
             googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
@@ -405,5 +517,4 @@ public class MapViewFragment extends Fragment implements OnMapReadyCallback,
             Toast.makeText(getActivity(), message, Toast.LENGTH_SHORT).show();
         }
     }
-
 }

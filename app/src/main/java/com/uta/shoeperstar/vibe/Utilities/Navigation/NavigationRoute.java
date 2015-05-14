@@ -17,7 +17,6 @@ public class NavigationRoute {
     private ArrayList<NavigationStep> steps;
     private String duration;
     private String distance;
-
     public NavigationRoute(JSONObject routeJson) throws JSONException {
         this.polyline = ((JSONObject) (((JSONArray) routeJson.get("routes")).getJSONObject(0))
                 .get("overview_polyline")).getString("points");
@@ -46,14 +45,25 @@ public class NavigationRoute {
 
     }
 
+    public ArrayList<NavigationStep> getSteps() {
+        return steps;
+    }
+
     public NavigationStep getCurrentStep(LatLng currentLocation) {
         if (steps == null) {
             return null;
         }
 
-        for (NavigationStep step : steps) {
-            if (step.isOnRoute(currentLocation)) {
-                return step;
+        for (int i = 0; i < steps.size(); i++) {
+            if (steps.get(i).isOnRoute(currentLocation)) {
+
+                // this if statement is check if the user is also near the next step,
+                // if the user is near the next step
+                if (!(i + 1 >= steps.size()) && steps.get(i + 1).isOnRoute(currentLocation)) {
+                    return steps.get(i + 1);
+                } else {
+                    return steps.get(i);
+                }
             }
         }
 
