@@ -245,6 +245,9 @@ public class VibeBluetoothService extends Service implements VibeShoeInterface {
                             }
                         }
                         Thread.sleep(300);  // we sleep here to conserve battery
+                        byte[] liveMsg = new byte[1];
+                        liveMsg[0] = 'z';
+                        sendData(shoe, liveMsg);    //this is to check if the shoes is a live
                     } catch (Exception e){
                         Log.e(TAG, "ERROR in receiving data, shoe code:" + shoe + "\nError: " + e.toString());
                     }

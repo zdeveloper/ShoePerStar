@@ -19,6 +19,8 @@ import com.uta.shoeperstar.vibe.Utilities.VibeBluetooth.VibeShoes;
 
 import org.w3c.dom.Text;
 
+import java.text.DecimalFormat;
+
 
 public class DashboardFragment extends Fragment {
 
@@ -174,6 +176,8 @@ public class DashboardFragment extends Fragment {
             Log.d(TAG, "Right Steps: " + steps);
             stepCount.setText(steps + "");
             rightShoeText.setText(getRightText(null, steps));
+            stepCount.setText(getAverageSteps());
+            distance.setText(getDistance());
         }
 
         @Override
@@ -219,6 +223,8 @@ public class DashboardFragment extends Fragment {
             Log.d(TAG, "Left Steps: " + steps);
             stepCount.setText(steps + "");
             leftShoeText.setText(getLeftText(null, steps));
+            stepCount.setText(getAverageSteps());
+            distance.setText(getDistance());
         }
 
         @Override
@@ -288,5 +294,17 @@ public class DashboardFragment extends Fragment {
         sb.append(rightSteps + " steps");
 
         return sb.toString();
+    }
+
+
+    String getDistance(){
+        double avg = (leftSteps+rightSteps)/2;
+        avg = avg*0.762;
+        return String.format("%.2f", avg) + " Meters";
+    }
+
+    String getAverageSteps(){
+        int avg = (leftSteps+rightSteps)/2;
+        return avg+"";
     }
 }
