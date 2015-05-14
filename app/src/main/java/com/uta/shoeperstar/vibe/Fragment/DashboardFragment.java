@@ -3,7 +3,6 @@ package com.uta.shoeperstar.vibe.Fragment;
 
 import android.app.Fragment;
 import android.os.Bundle;
-import android.os.Handler;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,8 +15,6 @@ import com.skyfishjy.library.RippleBackground;
 import com.uta.shoeperstar.vibe.R;
 import com.uta.shoeperstar.vibe.Utilities.VibeBluetooth.VibeShoeHandler;
 import com.uta.shoeperstar.vibe.Utilities.VibeBluetooth.VibeShoes;
-
-import org.w3c.dom.Text;
 
 
 public class DashboardFragment extends Fragment {
@@ -88,6 +85,7 @@ public class DashboardFragment extends Fragment {
             if (!vibeShoes.isShoeConnected(VibeShoes.RIGHT_SHOE)) {
                 rippleBackgroundRight.startRippleAnimation();
             } else {
+                rippleBackgroundRight.stopRippleAnimation();
                 rightShoe.setImageResource(R.drawable.ic_shoe);
             }
         } catch(Exception e){
@@ -99,6 +97,7 @@ public class DashboardFragment extends Fragment {
             if (!vibeShoes.isShoeConnected(VibeShoes.LEFT_SHOE)) {
                 rippleBackgroundLeft.startRippleAnimation();
             } else {
+                rippleBackgroundLeft.stopRippleAnimation();
                 leftShoe.setImageResource(R.drawable.ic_shoe);
             }
         } catch(Exception e){
@@ -174,6 +173,8 @@ public class DashboardFragment extends Fragment {
             Log.d(TAG, "Right Steps: " + steps);
             stepCount.setText(steps + "");
             rightShoeText.setText(getRightText(null, steps));
+            stepCount.setText(getAverageSteps());
+            distance.setText(getDistance());
         }
 
         @Override
@@ -219,6 +220,8 @@ public class DashboardFragment extends Fragment {
             Log.d(TAG, "Left Steps: " + steps);
             stepCount.setText(steps + "");
             leftShoeText.setText(getLeftText(null, steps));
+            stepCount.setText(getAverageSteps());
+            distance.setText(getDistance());
         }
 
         @Override
@@ -288,5 +291,17 @@ public class DashboardFragment extends Fragment {
         sb.append(rightSteps + " steps");
 
         return sb.toString();
+    }
+
+
+    String getDistance(){
+        double avg = (leftSteps+rightSteps)/2;
+        avg = avg*0.762;
+        return String.format("%.2f", avg) + " Meters";
+    }
+
+    String getAverageSteps(){
+        int avg = (leftSteps+rightSteps)/2;
+        return avg+"";
     }
 }

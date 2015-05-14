@@ -21,6 +21,12 @@ import com.uta.shoeperstar.vibe.Fragment.SettingsFragment;
  */
 public class TabsPagerAdapter extends FragmentStatePagerAdapter implements TabIndicator.TabTextProvider{
 
+    private static DashboardFragment dashboardFragment= null;
+    private static MapViewFragment mapViewFragment = null;
+    private static SettingsFragment settingsFragment = null;
+    private static DataVisualizationFragment dataVisualizationFragment = null;
+    private static PaceFragment paceFragment = null;
+
     private final String[] TITLES = { "Home", "Map", "Settings", "Stats", "Pace" };
 
     public TabsPagerAdapter(FragmentManager fm) {
@@ -32,15 +38,30 @@ public class TabsPagerAdapter extends FragmentStatePagerAdapter implements TabIn
 
         switch (index) {
             case 0:
-                return new DashboardFragment();
+                if(dashboardFragment == null){
+                    dashboardFragment = new DashboardFragment();
+                }
+                return dashboardFragment;
             case 1:
-                return new MapViewFragment();
+                if(mapViewFragment == null) {
+                    mapViewFragment = new MapViewFragment();
+                }
+                return mapViewFragment;
             case 2:
-                return new SettingsFragment();
+                if(settingsFragment == null){
+                    settingsFragment = new SettingsFragment();
+                }
+                return settingsFragment;
             case 3:
-                return new DataVisualizationFragment();
+                if(dataVisualizationFragment == null){
+                    dataVisualizationFragment = new DataVisualizationFragment();
+                }
+                return dataVisualizationFragment;
             case 4:
-                return new PaceFragment();
+                if(paceFragment == null) {
+                    paceFragment =  new PaceFragment();
+                }
+                return paceFragment;
         }
 
         return null;
