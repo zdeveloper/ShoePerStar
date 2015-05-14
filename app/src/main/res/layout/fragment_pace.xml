@@ -105,7 +105,7 @@
                     android:layout_height="303dp"
                     android:layout_gravity="center"
                     android:padding="80dp"
-                    app:max = '300'
+                    app:max = '60'
                     app:arcColor="@color/primary_light"
                     app:thumb="@color/accent"
                     app:progressColor="@color/primary"
@@ -121,7 +121,12 @@
                     android:layout_gravity="center"
                     android:text="0"
                     android:textSize="40sp" />
-
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="bottom"
+                    android:id="@+id/timerText"
+                    android:text=""/>
             </FrameLayout>
         </FrameLayout>
    </FrameLayout>

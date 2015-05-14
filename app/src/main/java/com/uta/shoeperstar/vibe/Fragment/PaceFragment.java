@@ -30,17 +30,17 @@ import java.util.concurrent.TimeUnit;
  * Created by tommy on 24/04/15.
  */
 public class PaceFragment extends Fragment {
-    TextView distancetv, timetv, distanceQuestion, timeQuestion;
+    TextView distancetv, timetv, distanceQuestion, timeQuestion, timerTextView;
     private static final int ONESEC  = 1000 ;
     private static final float MAXDISTANCEVALUE  = 5 ;
     FrameLayout second, first;
 
-    float secondVal, minuteVal;
+
     double distanceToGo;
     double[] distanceData = {1,.9,.8,.7,.7,.7,.6,.5,.2,0};
     long countdownTime, timeRemain;
     int time;
-    double pace, distance;
+    double pace, distance, paced;
     private SeekArc distanceSeek , timeSeek;
    // NumberPicker minutes, seconds;
 
@@ -75,6 +75,7 @@ public class PaceFragment extends Fragment {
         distancetv = (TextView) view.findViewById(R.id.distanceProgress);
         timeSeek = (SeekArc) view.findViewById(R.id.timeSeekArc);
         timetv = (TextView) view.findViewById(R.id.timeProgress);
+        timerTextView =(TextView)view.findViewById(R.id.timerText);
 
 //
 //
@@ -83,40 +84,40 @@ public class PaceFragment extends Fragment {
     }
 
     @Override
-    public void onViewCreated(View view, Bundle savedInstanceState){
-          distanceSeek.setOnSeekArcChangeListener( new SeekArc.OnSeekArcChangeListener() {
-              @Override
-              public void onProgressChanged(SeekArc seekArc, int i, boolean b) {
-                  distancetv.setClickable(false);
-                  distance =((float)i* MAXDISTANCEVALUE)/100;
-                  String fuck =String.format("%.2f", distance);
-                  distancetv.setText(fuck);
-              }
+    public void onViewCreated(View view, Bundle savedInstanceState) {
+        distanceSeek.setOnSeekArcChangeListener(new SeekArc.OnSeekArcChangeListener() {
+            @Override
+            public void onProgressChanged(SeekArc seekArc, int i, boolean b) {
+                distancetv.setClickable(false);
+                distance = ((float) i * MAXDISTANCEVALUE) / 100;
+                String fuck = String.format("%.2f", distance);
+                distancetv.setText(fuck);
+            }
 
-              @Override
-              public void onStartTrackingTouch(SeekArc seekArc) {
-                    distancetv.setClickable(false);
-              }
+            @Override
+            public void onStartTrackingTouch(SeekArc seekArc) {
+                distancetv.setClickable(false);
+            }
 
-              @Override
-              public void onStopTrackingTouch(SeekArc seekArc) {
-                  distancetv.setText("Next");
-                  distancetv.setClickable(true);
-                  distancetv.setOnClickListener(new View.OnClickListener() {
-                      @Override
-                      public void onClick(View v) {
-                          Log.d("button Clicked", "button clicked homie");
-                          first.setVisibility(View.GONE);
-                          second.setVisibility(View.VISIBLE);
-                          timeQuestion.setText("Select a time");
-                          timeQuestion.setVisibility(View.VISIBLE);
-                      }
-                  });
-              }
-          });
+            @Override
+            public void onStopTrackingTouch(SeekArc seekArc) {
+                distancetv.setText("Next");
+                distancetv.setClickable(true);
+                distancetv.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Log.d("button Clicked", "button clicked homie");
+                        first.setVisibility(View.GONE);
+                        second.setVisibility(View.VISIBLE);
+                        timeQuestion.setText("Select a time");
+                        timeQuestion.setVisibility(View.VISIBLE);
+                    }
+                });
+            }
+        });
 
 
-        timeSeek.setOnSeekArcChangeListener(new SeekArc.OnSeekArcChangeListener(){
+        timeSeek.setOnSeekArcChangeListener(new SeekArc.OnSeekArcChangeListener() {
             @Override
             public void onProgressChanged(SeekArc seekArc, int i, boolean b) {
                 timetv.setClickable(false);
@@ -137,13 +138,31 @@ public class PaceFragment extends Fragment {
                     @Override
                     public void onClick(View v) {
                         Log.d("set button Clicked", " set button clicked homie");
-
+                        paced = convertMilestofeet(distance);
+                        countdownTime = convertMintoMilli(time);
+                        pace = paced/countdownTime;
+                        timeSeek.setVisibility(View.GONE);
+                        Log.d("Pace", "pace = " +pace);
+                        final PaceCountDownTimer paceTimer = new PaceCountDownTimer(getActivity(),countdownTime, ONESEC, timerTextView, pace);
+                        paceTimer.start();
                     }
                 });
             }
         });
+    }
 
+    private double convertMilestofeet(double miles){
+        double feet;
+        feet = miles * 5280;
+        return feet;
+    }
 
+    private long convertMintoMilli(int min){
+        //converts minutes to seconds to milliseconds
+        // for input to PaceCountDownTimer
+        long cdtMilli= TimeUnit.MINUTES.toMillis(min);
+        return cdtMilli;
+    }
 
           //        getDistanceHandler = new Handler();
 //        // when values change then it updates the Minutes and seconds variable
@@ -208,7 +227,7 @@ public class PaceFragment extends Fragment {
 //                Log.d("Distance", "Distance: " + distance);
 //            }
 //        });
-    }
+//    }
 
 //    private long setCountdownTime(int min, int sec){
 //        //converts minutes to seconds to milliseconds
