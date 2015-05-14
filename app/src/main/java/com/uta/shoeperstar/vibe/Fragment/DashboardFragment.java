@@ -17,6 +17,8 @@ import com.uta.shoeperstar.vibe.R;
 import com.uta.shoeperstar.vibe.Utilities.VibeBluetooth.VibeShoeHandler;
 import com.uta.shoeperstar.vibe.Utilities.VibeBluetooth.VibeShoes;
 
+import org.w3c.dom.Text;
+
 
 public class DashboardFragment extends Fragment {
 
@@ -24,6 +26,7 @@ public class DashboardFragment extends Fragment {
 
     private TextView stepCount;
     private TextView distance;
+    private TextView rightShoeText, leftShoeText;
     private RippleBackground rippleBackgroundLeft, rippleBackgroundRight;
     private ImageView leftShoe, rightShoe;
 
@@ -58,6 +61,9 @@ public class DashboardFragment extends Fragment {
         rippleBackgroundLeft=(RippleBackground)view.findViewById(R.id.shoe_left_ripple);
         rippleBackgroundRight=(RippleBackground)view.findViewById(R.id.shoe_right_ripple);
 
+        leftShoeText = (TextView) view.findViewById(R.id.batteryLevelLeft);
+        rightShoeText = (TextView) view.findViewById(R.id.batteryLevelRight);
+
         leftShoe = (ImageView) view.findViewById(R.id.shoe_left);
         rightShoe = (ImageView) view.findViewById(R.id.shoe_right);
 
@@ -78,37 +84,52 @@ public class DashboardFragment extends Fragment {
         vibeShoes.setRightShoeListener(new RightVibeHandler()); //registering handler
         vibeShoes.setLeftShoeListener(new LeftVibeHandler()); //registering handler
 
-
-        //adding onclick listeners
-        leftShoe.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                rippleBackgroundLeft.startRippleAnimation();
-                //schedule to kill animation after a second
-                new Handler().postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        rippleBackgroundLeft.stopRippleAnimation();
-                        leftShoe.setImageResource(R.drawable.ic_shoe);
-                    }
-                }, 2000);
-            }
-        });
-
-        rightShoe.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+        try {
+            if (!vibeShoes.isShoeConnected(VibeShoes.RIGHT_SHOE)) {
                 rippleBackgroundRight.startRippleAnimation();
-                //schedule to kill animation after a second
-                new Handler().postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        rippleBackgroundRight.stopRippleAnimation();
-                        rightShoe.setImageResource(R.drawable.ic_shoe);
-                    }
-                }, 2000);
+            } else {
+                rightShoe.setImageResource(R.drawable.ic_shoe);
             }
-        });
+        } catch(Exception e){
+            rippleBackgroundRight.startRippleAnimation();
+        }
+
+
+        try {
+            if (!vibeShoes.isShoeConnected(VibeShoes.LEFT_SHOE)) {
+                rippleBackgroundLeft.startRippleAnimation();
+            } else {
+                leftShoe.setImageResource(R.drawable.ic_shoe);
+            }
+        } catch(Exception e){
+            rippleBackgroundLeft.startRippleAnimation();
+        }
+//        //adding onclick listeners
+//        leftShoe.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//
+//                //schedule to kill animation after a second
+//                new Handler().postDelayed(new Runnable() {
+//                    @Override
+//                    public void run() {
+//                    }
+//                }, 2000);
+//            }
+//        });
+//
+//        rightShoe.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//
+//                //schedule to kill animation after a second
+//                new Handler().postDelayed(new Runnable() {
+//                    @Override
+//                    public void run() {
+//                    }
+//                }, 2000);
+//            }
+//        });
 
 
         vibrateBtn.setOnClickListener(new View.OnClickListener() {
@@ -151,12 +172,14 @@ public class DashboardFragment extends Fragment {
         @Override
         public void onStepReceived(int steps) {
             Log.d(TAG, "Right Steps: " + steps);
-            stepCount.setText(steps+"");
+            stepCount.setText(steps + "");
+            rightShoeText.setText(getRightText(null, steps));
         }
 
         @Override
         public void onBatteryLevelReceived(int batteryLevel) {
             Log.d(TAG, "Right Battery: " + batteryLevel);
+            rightShoeText.setText(getRightText(batteryLevel, null));
         }
 
         @Override
@@ -173,6 +196,18 @@ public class DashboardFragment extends Fragment {
         public void onStringReceived(String message) {
             Log.d(TAG, "Right Raw Message: " + message);
         }
+
+        @Override
+        public void onShoeConnected() {
+            rippleBackgroundRight.stopRippleAnimation();
+            rightShoe.setImageResource(R.drawable.ic_shoe);
+        }
+
+        @Override
+        public void onShoeDisconnected() {
+            rippleBackgroundRight.startRippleAnimation();
+            rightShoe.setImageResource(R.drawable.ic_shoe_light);
+        }
     }
 
 
@@ -182,12 +217,14 @@ public class DashboardFragment extends Fragment {
         @Override
         public void onStepReceived(int steps) {
             Log.d(TAG, "Left Steps: " + steps);
-            stepCount.setText(steps+"");
+            stepCount.setText(steps + "");
+            leftShoeText.setText(getLeftText(null, steps));
         }
 
         @Override
         public void onBatteryLevelReceived(int batteryLevel) {
             Log.d(TAG, "Left Battery: " + batteryLevel);
+            leftShoeText.setText(getLeftText(batteryLevel, null));
         }
 
         @Override
@@ -204,5 +241,52 @@ public class DashboardFragment extends Fragment {
         public void onStringReceived(String message) {
             Log.d(TAG, "Left Raw Message: " + message);
         }
+
+        @Override
+        public void onShoeConnected() {
+            rippleBackgroundLeft.stopRippleAnimation();
+            leftShoe.setImageResource(R.drawable.ic_shoe);
+        }
+
+        @Override
+        public void onShoeDisconnected() {
+            rippleBackgroundLeft.startRippleAnimation();
+            leftShoe.setImageResource(R.drawable.ic_shoe_light);
+        }
+    }
+
+
+    int leftBattery=0, rightBattery=0;
+    int leftSteps = 0, rightSteps=0;
+    String getLeftText(Integer battery, Integer steps){
+
+        if(battery != null) leftBattery = battery;
+        if(steps!=null) leftSteps = steps;
+
+        if(leftBattery > 100) leftBattery = 100;
+        if(leftBattery < 0) leftBattery = 0;
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("LEFT SHOE\n");
+        sb.append(leftBattery+"%\n");
+        sb.append(leftSteps + " steps");
+
+        return sb.toString();
+    }
+
+    String getRightText(Integer battery, Integer steps){
+
+        if(battery != null) rightBattery = battery;
+        if(steps!=null) rightSteps = steps;
+
+        if(rightBattery  > 100) rightBattery = 100;
+        if(rightBattery < 0) leftBattery=0;
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("LEFT SHOE\n");
+        sb.append(rightBattery+"%\n");
+        sb.append(rightSteps + " steps");
+
+        return sb.toString();
     }
 }

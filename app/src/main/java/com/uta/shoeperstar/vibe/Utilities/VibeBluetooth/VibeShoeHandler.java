@@ -14,6 +14,8 @@ public abstract class VibeShoeHandler extends Handler{
     public static final int MSG_PULSE_ACTUAL = 3;
     public static final int MSG_PULSE_ESTIMATED = 4;
     public static final int MSG_RAW = 5;
+    public static final int MSG_SHOE_CONNECTED = 6;
+    public static final int MSG_SHOE_DISCONNECTED = 7;
 
    //@Override
     public void handleMessage(Message msg) {
@@ -22,13 +24,19 @@ public abstract class VibeShoeHandler extends Handler{
                 onBatteryLevelReceived( (Integer) msg.obj );
                 break;
             case MSG_STEPS:
-                onStepReceived( (Integer) msg.obj );
+                onStepReceived((Integer) msg.obj);
                 break;
             case MSG_PULSE_ACTUAL:
-                onPulseActualReceived( (Integer) msg.obj );
+                onPulseActualReceived((Integer) msg.obj);
                 break;
             case MSG_PULSE_ESTIMATED:
-                onPulseEstimatedReceived( (Integer) msg.obj );
+                onPulseEstimatedReceived((Integer) msg.obj);
+                break;
+            case MSG_SHOE_CONNECTED:
+                onShoeConnected();
+                break;
+            case MSG_SHOE_DISCONNECTED:
+                onShoeDisconnected();
                 break;
             default:
                 onStringReceived((String) msg.obj);
@@ -41,4 +49,6 @@ public abstract class VibeShoeHandler extends Handler{
     public abstract void onPulseEstimatedReceived(int pulses);
     public abstract void onPulseActualReceived(int pulses);
     public abstract void onStringReceived(String message);
+    public abstract void onShoeConnected();
+    public abstract void onShoeDisconnected();
 }
