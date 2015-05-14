@@ -11,10 +11,10 @@
         android:layout_gravity="center"
         android:textSize="@dimen/abc_text_size_medium_material" />
 
-    <TextView
-        android:id="@+id/nav_info_distance"
-        android:layout_width="300px"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center" />
+    <!--<TextView-->
+        <!--android:id="@+id/nav_info_distance"-->
+        <!--android:layout_width="300px"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:layout_gravity="center" />-->
 
 </LinearLayout>

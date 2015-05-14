@@ -104,21 +104,27 @@ public class MapViewFragment extends Fragment implements OnMapReadyCallback,
         // Defines the contents of the InfoWindow
         @Override
         public View getInfoContents(Marker marker) {
+            View v = null;
 
-            // Getting view from the layout file info_window layout
-            View v = getActivity().getLayoutInflater().inflate(R.layout.navigation_info_window, null);
 
-            // Getting the position from the marker
-            final LatLng markerPosition = marker.getPosition();
-            float result[] = new float[1];
-            Location.distanceBetween(getLastKnownLocation().getLatitude(), getLastKnownLocation().getLongitude()
-                    , markerPosition.latitude, markerPosition.longitude, result);
+            try {
+                // Getting view from the layout file info_window layout
+                v = getActivity().getLayoutInflater().inflate(R.layout.navigation_info_window, null);
 
-            TextView instructionTextView = (TextView) v.findViewById(R.id.nav_info_instruction);
+                // Getting the position from the marker
+                final LatLng markerPosition = marker.getPosition();
+                float result[] = new float[1];
+                Location.distanceBetween(getLastKnownLocation().getLatitude(), getLastKnownLocation().getLongitude()
+                        , markerPosition.latitude, markerPosition.longitude, result);
+
+                TextView instructionTextView = (TextView) v.findViewById(R.id.nav_info_instruction);
 //            TextView distanceTextView = (TextView) v.findViewById(R.id.nav_info_distance);
 
-            instructionTextView.setText(Html.fromHtml(marker.getTitle()));
+                instructionTextView.setText(Html.fromHtml(marker.getTitle()));
 //            distanceTextView.setText("" + result[0]);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
 
             return v;
         }
@@ -467,7 +473,7 @@ public class MapViewFragment extends Fragment implements OnMapReadyCallback,
         @Override
         public void onNextTurn(NavigationStep nextTurn) {
 
-            if (nextTurn != null && !nextTurn.isPassed()) {
+            if (nextTurn != null) {
                 try {
                     // Select the turn image
                     int turnImageResourceId = getTurnImageResourceId(nextTurn.getManeuver());
@@ -484,23 +490,6 @@ public class MapViewFragment extends Fragment implements OnMapReadyCallback,
                 }
             }
 
-
-
-            if (vibeShoes == null) {
-                Toast.makeText(getActivity(), "Something wrong with vibeShoes", Toast.LENGTH_SHORT);
-                return;
-            }
-
-            if (nextTurn.getManeuver() == NavigationStep.MANEUVERS.LEFT) {
-                Toast.makeText(getActivity(), "Nearing left turn, vibrated", Toast.LENGTH_SHORT);
-                vibeShoes.sendVibrationCommand(VibeShoes.LEFT_SHOE, 2, 100, 5);
-
-            } else if (nextTurn.getManeuver() == NavigationStep.MANEUVERS.LEFT) {
-                Toast.makeText(getActivity(), "Nearing right turn, vibrated", Toast.LENGTH_SHORT);
-                vibeShoes.sendVibrationCommand(VibeShoes.RIGHT_SHOE, 2, 100, 5);
-
-            } else {
-            }
         }
 
         @Override
@@ -510,11 +499,13 @@ public class MapViewFragment extends Fragment implements OnMapReadyCallback,
             }
 
             if (nextTurn.getManeuver() == NavigationStep.MANEUVERS.LEFT) {
-                vibeShoes.sendVibrationCommand(VibeShoes.LEFT_SHOE, 2, 100, 5);
                 Toast.makeText(getActivity(), "Nearing left turn, vibrated", Toast.LENGTH_SHORT);
+
+                vibeShoes.sendVibrationCommand(VibeShoes.LEFT_SHOE, 2, 100, 5);
             } else if (nextTurn.getManeuver() == NavigationStep.MANEUVERS.LEFT) {
-                vibeShoes.sendVibrationCommand(VibeShoes.RIGHT_SHOE, 2, 100, 5);
                 Toast.makeText(getActivity(), "Nearing right turn, vibrated", Toast.LENGTH_SHORT);
+
+                vibeShoes.sendVibrationCommand(VibeShoes.RIGHT_SHOE, 2, 100, 5);
             } else {
             }
         }
@@ -527,13 +518,12 @@ public class MapViewFragment extends Fragment implements OnMapReadyCallback,
         @Override
         public void onNextPoint(List<LatLng> nextPoints) {
             float distance[] = new float[2];
-            Location.distanceBetween(nextPoints.get(0).latitude, nextPoints.get(0).latitude,
+            Location.distanceBetween(nextPoints.get(0).latitude, nextPoints.get(0).longitude,
                     nextPoints.get(1).latitude, nextPoints.get(1).longitude, distance);
 
             CameraPosition cameraPosition = new CameraPosition.Builder()
                     .target(                    // Sets the center of the map to Mountain View
-                            new LatLng(lastKnownLocation.getLatitude(),
-                                    lastKnownLocation.getLongitude()))
+                            nextPoints.get(0))
                     .zoom(20)                   // Sets the zoom
                     .bearing(distance[1])       // Sets the orientation of the camera
                     .tilt(60)                   // Sets the tilt of the camera to 30 degrees

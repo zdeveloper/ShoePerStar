@@ -39,7 +39,7 @@ import java.util.Locale;
 
 public class NavigationUpdateService extends Service implements LocationListener {
 
-    public static float NEARING_TURN_DISTANCE = 5;
+    public static float NEARING_TURN_DISTANCE = 30;
     private final IBinder mBinder = new NavigationUpdateBinder();
     private Looper mServiceLooper;
     private Messenger mapViewMessenger;
@@ -163,26 +163,24 @@ public class NavigationUpdateService extends Service implements LocationListener
 
         try {
             // Check for change of turn
-            NavigationStep newCurrentStep = route.getCurrentStep(currentLocation);
-            if (newCurrentStep != null && !currentStep.equals(newCurrentStep)) {
-                if (!newCurrentStep.isPassed()) {
-                    newCurrentStep.setPassed(true);
-                    currentStep = newCurrentStep;
-                    sendMessage(NavigationUpdateHandler.NEXT_TURN, currentStep);
-                }
-            }
-
-//            // check for nearing end of turn
-//            float distanceUntilTurn = currentStep.distanceUntilTurn(currentLocation);
-//            NavigationStep nextStep;
-//            if (distanceUntilTurn < NEARING_TURN_DISTANCE) {
-////            if (true) {
-//                nextStep = route.getNextStep(currentStep);
-//                if (!currentStep.isPassed()) {
-//                    currentStep.setPassed(true);
-//                    sendMessage(NavigationUpdateHandler.NEARING_END_OF_TURN, nextStep);
+//            NavigationStep newCurrentStep = route.getCurrentStep(currentLocation);
+//            if (newCurrentStep != null && !currentStep.equals(newCurrentStep)) {
+//                if (!newCurrentStep.isPassed()) {
+//                    newCurrentStep.setPassed(true);
+//                    currentStep = newCurrentStep;
+//                    sendMessage(NavigationUpdateHandler.NEXT_TURN, currentStep);
 //                }
 //            }
+
+            // check for nearing end of turn
+            float distanceUntilTurn = currentStep.distanceUntilTurn(currentLocation);
+            if (distanceUntilTurn <= NEARING_TURN_DISTANCE) {
+                currentStep = route.getNextStep(currentStep);
+
+                sendMessage(NavigationUpdateHandler.NEARING_END_OF_TURN, route.getNextStep(currentStep));
+
+                sendMessage(NavigationUpdateHandler.NEXT_TURN, route.getNextStep(currentStep));
+            }
 
 //            sendMessage(NavigationUpdateHandler.MESSAGE, "Distance until turn: " + distanceUntilTurn + ", " + nextStep.getManeuver().toString());
 
@@ -263,7 +261,7 @@ public class NavigationUpdateService extends Service implements LocationListener
 
         // initialize location manager
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 500, 1, this);
+        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 200, 1, this);
 
         currentStep = route.getFirstStep();
         mode = MODE.NAVIGATING;
